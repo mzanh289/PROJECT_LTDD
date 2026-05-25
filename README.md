@@ -2,172 +2,24 @@
 
 ## 📖 Giới thiệu
 
-**MinLish App** là ứng dụng hỗ trợ học từ vựng tiếng Anh hiện đại, giúp người học ghi nhớ từ vựng hiệu quả thông qua các phương pháp:
+**MinLish App** là ứng dụng Android hỗ trợ học từ vựng tiếng Anh thông qua các phương pháp học hiện đại:
 
 - 📚 Flashcard Learning
 - 🧠 Spaced Repetition System (SRS)
 - 📝 Context-based Learning
 
-Ứng dụng phù hợp cho học sinh, sinh viên, người học IELTS/TOEIC và người đi làm muốn nâng cao vốn từ vựng tiếng Anh.
+Ứng dụng giúp người học ghi nhớ từ vựng hiệu quả, theo dõi tiến độ học tập và xây dựng thói quen học mỗi ngày.
 
 ---
 
 # 🎯 Mục tiêu
 
-Xây dựng nền tảng học từ vựng:
+Xây dựng ứng dụng Android hỗ trợ học từ vựng:
 
-- Dễ sử dụng
 - Học nhanh nhớ lâu
+- Ôn tập thông minh bằng thuật toán SRS
 - Theo dõi tiến độ học tập
-- Tự động nhắc ôn tập thông minh
-
----
-
-# 🚀 Tính năng chính
-
-## 1. User Management
-
-### 🔐 Đăng ký / Đăng nhập
-
-- Đăng nhập bằng Email + Password
-- Google Login
-
-### 👤 Hồ sơ người dùng
-
-- Tên người dùng
-- Mục tiêu học tập (IELTS, TOEIC, giao tiếp,…)
-- Trình độ tiếng Anh (A1 → C2)
-
----
-
-## 2. Vocabulary Management
-
-### 📂 Tạo bộ từ vựng
-
-Người dùng có thể:
-
-- Tạo bộ từ riêng
-- Thêm mô tả
-- Gắn tags:
-  - IELTS
-  - Business
-  - Travel
-  - Academic
-
-### 📖 Quản lý từ vựng
-
-Mỗi từ vựng bao gồm:
-
-- Word
-- Pronunciation
-- Meaning
-- Description (English)
-- Example sentence
-- Collocation
-- Related words
-- Note
-
-### 📥 Import / Export
-
-- Import từ file CSV / Excel
-- Export bộ từ vựng
-
----
-
-## 3. Learning Module
-
-### 🃏 Flashcard Learning
-
-- Front side: Word
-- Back side: Meaning + Example
-- Flip animation trực quan
-
-### 🔁 Spaced Repetition System (SM-2)
-
-Ứng dụng áp dụng thuật toán **SM-2**.
-
-Người dùng đánh giá mức độ nhớ:
-
-- Again
-- Hard
-- Good
-- Easy
-
-Hệ thống sẽ tự động tính:
-
-- Next review time
-- Ease factor
-
-### 📅 Daily Learning Plan
-
-- Số từ mới mỗi ngày
-- Số từ cần ôn tập
-- Kế hoạch học thông minh
-
----
-
-## 4. Progress Tracking
-
-### 📊 Dashboard
-
-Hiển thị:
-
-- Tổng số từ đã học
-- Learning streak
-- Accuracy (% đúng)
-
-### 📈 Biểu đồ thống kê
-
-- Daily activity
-- Retention rate
-
-### 🏆 Level Estimation
-
-Đánh giá trình độ:
-
-- Beginner
-- Intermediate
-- Advanced
-
----
-
-## 5. Notification System
-
-- Nhắc học mỗi ngày
-- Nhắc từ đến hạn ôn tập
-- Email notification
-- Push notification
-
----
-
-# 🧩 Các Module Chính
-
-1. User Management
-2. Vocabulary Management
-3. Learning Engine (SRS)
-4. Practice Module
-5. Analytics & Progress
-6. Notification System
-
----
-
-# ⚙️ Yêu cầu phi chức năng
-
-## 🚀 Performance
-
-- Thời gian tải < 2s
-- Hỗ trợ ~1000 concurrent users
-
-## 🔒 Security
-
-- JWT Authentication
-- Password Encryption (bcrypt)
-
-## 🎨 Usability
-
-- UI/UX đơn giản
-- Dễ sử dụng
-- Tối ưu trải nghiệm học tập
+- UI/UX đơn giản, dễ sử dụng
 
 ---
 
@@ -180,40 +32,185 @@ Hiển thị:
 
 ---
 
-# 🛠️ Công nghệ đề xuất
+# 🚀 Chức năng chính
 
-## Frontend
+## 1. Authentication
 
-- ReactJS / NextJS
-- TailwindCSS
+### 🔐 Đăng ký / Đăng nhập
 
-## Backend
+- Email + Password
+- Google Sign-In
 
-- NodeJS + ExpressJS
-- Spring Boot (optional)
+### 👤 Hồ sơ người dùng
 
-## Database
+- Tên người dùng
+- Mục tiêu học tập
+- Trình độ tiếng Anh (A1 → C2)
 
-- PostgreSQL / MongoDB
+---
 
-## Authentication
+## 2. Vocabulary Management
 
-- JWT
-- OAuth2 Google Login
+### 📂 Quản lý bộ từ vựng
 
-## Notification
+- Tạo bộ từ
+- Chỉnh sửa / xóa bộ từ
+- Gắn tag:
+  - IELTS
+  - TOEIC
+  - Business
+  - Travel
 
+### 📖 Quản lý từ vựng
+
+Mỗi từ vựng bao gồm:
+
+- Word
+- Pronunciation
+- Meaning
+- Description
+- Example
+- Collocation
+- Related Words
+- Note
+
+### 📥 Import / Export
+
+- Import CSV / Excel
+- Export bộ từ vựng
+
+---
+
+## 3. Learning Module
+
+### 🃏 Flashcard
+
+- Hiển thị từ ở mặt trước
+- Nghĩa + ví dụ ở mặt sau
+- Flip animation
+
+### 🔁 Spaced Repetition (SM-2)
+
+Người dùng đánh giá mức độ nhớ:
+
+- Again
+- Hard
+- Good
+- Easy
+
+Hệ thống tính toán:
+
+- Ease Factor
+- Interval
+- Next Review Time
+
+### 📅 Daily Learning Plan
+
+- Số từ mới mỗi ngày
+- Số từ cần ôn tập
+- Kế hoạch học tự động
+
+---
+
+## 4. Progress Tracking
+
+### 📊 Dashboard
+
+- Tổng số từ đã học
+- Accuracy
+- Learning streak
+
+### 📈 Statistics
+
+- Daily Activity
+- Retention Rate
+- Learning Progress
+
+### 🏆 Level Estimation
+
+- Beginner
+- Intermediate
+- Advanced
+
+---
+
+## 5. Notification System
+
+- Nhắc học mỗi ngày
+- Nhắc ôn tập từ đến hạn
+- Push Notification
+
+---
+
+# 🧩 Kiến trúc hệ thống
+
+## Android Architecture
+
+- MVVM Architecture
+- Repository Pattern
+- Clean Architecture
+
+---
+
+# 🛠️ Công nghệ sử dụng
+
+## Android
+
+- Kotlin
+- Jetpack Compose / XML
+- Android Jetpack
+
+## Architecture Components
+
+- ViewModel
+- LiveData / StateFlow
+- Navigation Component
+- Room Database
+
+## Backend / Cloud
+
+- Firebase Authentication
+- Firebase Firestore
 - Firebase Cloud Messaging
-- Email Service
+
+## Local Storage
+
+- Room Database
+- DataStore
+
+## Dependency Injection
+
+- Hilt / Dagger
+
+---
+
+# ⚙️ Yêu cầu phi chức năng
+
+## 🚀 Performance
+
+- Thời gian tải < 2s
+- Tối ưu cho thiết bị Android tầm trung
+
+## 🔒 Security
+
+- JWT Authentication
+- Password Encryption (bcrypt)
+
+## 🎨 UI/UX
+
+- Giao diện đơn giản
+- Dễ sử dụng
+- Dark Mode support
 
 ---
 
 # 📌 Định hướng phát triển
 
-- AI gợi ý từ vựng phù hợp
+- AI gợi ý từ vựng
 - Speech pronunciation checking
-- Multiplayer vocabulary challenge
-- Mobile App (Android / iOS)
+- Widget học từ vựng
+- Đồng bộ đa thiết bị
+- Offline Mode
 
 ---
 
