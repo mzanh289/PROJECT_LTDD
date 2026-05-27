@@ -11,345 +11,230 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.School
-import androidx.compose.material.icons.filled.ShowChart
+import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material.icons.filled.Timer
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.material.icons.filled.BarChart
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.MenuBook
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
-
-private val Primary = Color(0xFF4F46E5)
-private val Orange = Color(0xFFFF8A00)
-private val Background = Color(0xFFF5F7FF)
+import com.example.project_enlishlearning.ui.components.AppCard
+import com.example.project_enlishlearning.ui.components.AppGradientBackground
+import com.example.project_enlishlearning.ui.components.AppSectionHeader
+import com.example.project_enlishlearning.ui.components.AppToolbar
+import com.example.project_enlishlearning.ui.components.BottomNavItem
+import com.example.project_enlishlearning.ui.components.BottomNavigationBar
+import com.example.project_enlishlearning.ui.theme.Accent
+import com.example.project_enlishlearning.ui.theme.AppDimens
+import com.example.project_enlishlearning.ui.theme.ProjectEnlishLearningTheme
+import com.example.project_enlishlearning.ui.theme.Secondary
 
 @Composable
-fun ProgressDashboardScreen() {
-
+fun DashboardScreen(
+    selected: BottomNavItem = BottomNavItem.Dashboard,
+    onBottomItemSelected: (BottomNavItem) -> Unit = {}
+) {
     var dailyReminder by remember { mutableStateOf(true) }
     var reviewReminder by remember { mutableStateOf(true) }
     var emailNotification by remember { mutableStateOf(false) }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                    listOf(
-                        Color(0xFFEDE9FE),
-                        Background
-                    )
-                )
+    Scaffold(
+        topBar = {
+            AppToolbar(
+                title = "Learning Progress",
+                subtitle = "Track your English learning performance."
             )
-    ) {
-
-        Column(
-            modifier = Modifier.fillMaxSize()
+        },
+        bottomBar = {
+            BottomNavigationBar(
+                selected = selected,
+                onItemSelected = onBottomItemSelected
+            )
+        }
+    ) { innerPadding ->
+        AppGradientBackground(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
         ) {
-
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .verticalScroll(rememberScrollState())
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                    start = AppDimens.ScreenPadding,
+                    end = AppDimens.ScreenPadding,
+                    top = 12.dp,
+                    bottom = AppDimens.BottomBarPadding
+                ),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                Text(
-                    text = "Learning Progress",
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF111827)
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = "Track your English learning performance.",
-                    color = Color.Gray
-                )
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-
-                    DashboardCard(
-                        title = "Words Learned",
-                        value = "1,245",
-                        icon = {
-                            Icon(
-                                imageVector = Icons.Default.School,
-                                contentDescription = null,
-                                tint = Primary
-                            )
-                        },
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    DashboardCard(
-                        title = "Streak",
-                        value = "15 Days",
-                        icon = {
-                            Icon(
-                                imageVector = Icons.Default.LocalFireDepartment,
-                                contentDescription = null,
-                                tint = Orange
-                            )
-                        },
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                DashboardCard(
-                    title = "Accuracy",
-                    value = "92%",
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Default.ShowChart,
-                            contentDescription = null,
-                            tint = Color(0xFF10B981)
+                item {
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        DashboardMetricCard(
+                            title = "Words Learned",
+                            value = "1,245",
+                            icon = Icons.Default.School,
+                            iconTint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.weight(1f)
                         )
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Spacer(modifier = Modifier.height(28.dp))
-
-                Text(
-                    text = "Learning Analytics",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                ChartCard(
-                    title = "Daily Activity",
-                    subtitle = "Your learning consistency this week"
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                ChartCard(
-                    title = "Retention Rate",
-                    subtitle = "Vocabulary memory performance"
-                )
-
-                Spacer(modifier = Modifier.height(28.dp))
-
-                Text(
-                    text = "Current English Level",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Surface(
-                    shape = RoundedCornerShape(20.dp),
-                    color = Primary,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-
-                    Column(
-                        modifier = Modifier.padding(24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-
-                        Text(
-                            text = "Intermediate",
-                            fontSize = 32.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Text(
-                            text = "You can communicate confidently in daily situations.",
-                            color = Color.White.copy(alpha = 0.8f)
+                        DashboardMetricCard(
+                            title = "Streak",
+                            value = "15 Days",
+                            icon = Icons.Default.LocalFireDepartment,
+                            iconTint = Accent,
+                            modifier = Modifier.weight(1f)
                         )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(28.dp))
+                item {
+                    DashboardMetricCard(
+                        title = "Accuracy",
+                        value = "92%",
+                        icon = Icons.AutoMirrored.Filled.ShowChart,
+                        iconTint = Secondary,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
 
-                Text(
-                    text = "Notification Settings",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
+                item {
+                    AppSectionHeader(title = "Learning Analytics")
+                }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                items(listOf(
+                    Pair("Daily Activity", "Your learning consistency this week"),
+                    Pair("Retention Rate", "Vocabulary memory performance")
+                )) { item ->
+                    AnalyticsCard(title = item.first, subtitle = item.second)
+                }
 
-                NotificationItem(
-                    icon = Icons.Default.Notifications,
-                    title = "Daily Learning Reminder",
-                    subtitle = "Get reminded to study every day",
-                    checked = dailyReminder,
-                    onCheckedChange = {
-                        dailyReminder = it
-                    }
-                )
+                item {
+                    AppSectionHeader(title = "Current English Level")
+                }
 
-                NotificationItem(
-                    icon = Icons.Default.Timer,
-                    title = "Review Reminder",
-                    subtitle = "Reminder for vocabulary review schedule",
-                    checked = reviewReminder,
-                    onCheckedChange = {
-                        reviewReminder = it
-                    }
-                )
+                item {
+                    LevelCard()
+                }
 
-                NotificationItem(
-                    icon = Icons.Default.Email,
-                    title = "Email Notifications",
-                    subtitle = "Receive progress and lesson updates",
-                    checked = emailNotification,
-                    onCheckedChange = {
-                        emailNotification = it
-                    }
-                )
+                item {
+                    AppSectionHeader(title = "Notification Settings")
+                }
+
+                item {
+                    NotificationToggleItem(
+                        icon = Icons.Default.Notifications,
+                        title = "Daily Learning Reminder",
+                        subtitle = "Get reminded to study every day",
+                        checked = dailyReminder,
+                        onCheckedChange = { dailyReminder = it }
+                    )
+                }
+
+                item {
+                    NotificationToggleItem(
+                        icon = Icons.Default.Timer,
+                        title = "Review Reminder",
+                        subtitle = "Reminder for vocabulary review schedule",
+                        checked = reviewReminder,
+                        onCheckedChange = { reviewReminder = it }
+                    )
+                }
+
+                item {
+                    NotificationToggleItem(
+                        icon = Icons.Default.Email,
+                        title = "Email Notifications",
+                        subtitle = "Receive progress and lesson updates",
+                        checked = emailNotification,
+                        onCheckedChange = { emailNotification = it }
+                    )
+                }
             }
-            BottomNavigationBar()
         }
     }
 }
 
 @Composable
-fun DashboardCard(
+fun ProgressDashboardScreen() {
+    DashboardScreen()
+}
+
+@Composable
+private fun DashboardMetricCard(
     title: String,
     value: String,
-    icon: @Composable () -> Unit,
+    icon: ImageVector,
+    iconTint: Color,
     modifier: Modifier = Modifier
 ) {
-
-    Card(
-        modifier = modifier,
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 6.dp
-        )
-    ) {
-
-        Column(
-            modifier = Modifier.padding(20.dp)
-        ) {
-
-            icon()
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = value,
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold
+    AppCard(modifier = modifier) {
+        Column(modifier = Modifier.padding(AppDimens.CardPadding)) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = iconTint
             )
-
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(text = value, style = MaterialTheme.typography.titleLarge)
             Spacer(modifier = Modifier.height(4.dp))
-
             Text(
                 text = title,
-                color = Color.Gray
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
 }
 
 @Composable
-fun ChartCard(
+private fun AnalyticsCard(
     title: String,
     subtitle: String
 ) {
-
-    Card(
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 6.dp
-        ),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-
-        Column(
-            modifier = Modifier.padding(20.dp)
-        ) {
-
-            Text(
-                text = title,
-                fontWeight = FontWeight.Bold,
-                fontSize = 18.sp
-            )
-
+    AppCard(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(AppDimens.CardPadding)) {
+            Text(text = title, style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(4.dp))
-
             Text(
                 text = subtitle,
-                color = Color.Gray,
-                fontSize = 14.sp
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // Fake chart bars
+            Spacer(modifier = Modifier.height(16.dp))
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(120.dp),
+                    .height(110.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Bottom
             ) {
-
-                listOf(40, 70, 55, 90, 65, 110, 85).forEach {
-
+                listOf(36, 72, 54, 90, 62, 102, 84).forEach { height ->
                     Box(
                         modifier = Modifier
-                            .width(24.dp)
-                            .height(it.dp)
+                            .width(22.dp)
+                            .height(height.dp)
                             .background(
-                                color = Primary,
-                                shape = RoundedCornerShape(12.dp)
+                                color = MaterialTheme.colorScheme.primary,
+                                shape = RoundedCornerShape(10.dp)
                             )
                     )
                 }
@@ -359,60 +244,59 @@ fun ChartCard(
 }
 
 @Composable
-fun NotificationItem(
+private fun LevelCard() {
+    AppCard(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier
+                .padding(AppDimens.CardPadding)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "Intermediate",
+                style = MaterialTheme.typography.displaySmall,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "You can communicate confidently in daily situations.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+private fun NotificationToggleItem(
     icon: ImageVector,
     title: String,
     subtitle: String,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit
 ) {
-
-    Card(
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 4.dp
-        ),
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 12.dp)
-    ) {
-
+    AppCard(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(18.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = Primary
+                tint = MaterialTheme.colorScheme.primary
             )
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-
-                Text(
-                    text = title,
-                    fontWeight = FontWeight.Bold
-                )
-
+            Spacer(modifier = Modifier.width(14.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = title, style = MaterialTheme.typography.titleMedium)
                 Spacer(modifier = Modifier.height(4.dp))
-
                 Text(
                     text = subtitle,
-                    color = Color.Gray,
-                    fontSize = 13.sp
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-
             Switch(
                 checked = checked,
                 onCheckedChange = onCheckedChange
@@ -421,84 +305,11 @@ fun NotificationItem(
     }
 }
 
-@Composable
-fun BottomNavigationBar() {
-
-    NavigationBar(
-        containerColor = Color.White
-    ) {
-
-        NavigationBarItem(
-            selected = true,
-            onClick = { },
-            icon = {
-                Icon(
-                    imageVector = Icons.Default.Home,
-                    contentDescription = "Dashboard"
-                )
-            },
-            label = {
-                Text("Dashboard")
-            },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = Primary,
-                selectedTextColor = Primary,
-                indicatorColor = Primary.copy(alpha = 0.1f)
-            )
-        )
-
-        NavigationBarItem(
-            selected = false,
-            onClick = { },
-            icon = {
-                Icon(
-                    imageVector = Icons.Default.MenuBook,
-                    contentDescription = "Set List"
-                )
-            },
-            label = {
-                Text("SetList")
-            }
-        )
-
-        NavigationBarItem(
-            selected = false,
-            onClick = { },
-            icon = {
-                Icon(
-                    imageVector = Icons.Default.BarChart,
-                    contentDescription = "Statistics"
-                )
-            },
-            label = {
-                Text("Statistics")
-            }
-        )
-
-        NavigationBarItem(
-            selected = false,
-            onClick = { },
-            icon = {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = "Profile"
-                )
-            },
-            label = {
-                Text("Profile")
-            }
-        )
-    }
-}
-
-@Preview(
-    showBackground = true,
-    showSystemUi = true
-)
+@Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun ProgressDashboardPreview() {
-
-    MaterialTheme {
-        ProgressDashboardScreen()
+    ProjectEnlishLearningTheme {
+        DashboardScreen()
     }
 }
+

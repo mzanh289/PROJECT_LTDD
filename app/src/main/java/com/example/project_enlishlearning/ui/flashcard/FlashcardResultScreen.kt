@@ -1,2 +1,238 @@
 package com.example.project_enlishlearning.ui.flashcard
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import com.example.project_enlishlearning.ui.components.AppCard
+import com.example.project_enlishlearning.ui.components.AppGradientBackground
+import com.example.project_enlishlearning.ui.components.AppToolbar
+import com.example.project_enlishlearning.ui.components.PrimaryButton
+import com.example.project_enlishlearning.ui.components.SecondaryButton
+import com.example.project_enlishlearning.ui.theme.Accent
+import com.example.project_enlishlearning.ui.theme.AppDimens
+import com.example.project_enlishlearning.ui.theme.Primary
+import com.example.project_enlishlearning.ui.theme.ProjectEnlishLearningTheme
+import com.example.project_enlishlearning.ui.theme.Secondary
+
+@Composable
+fun FlashcardResultScreen(
+	onContinue: () -> Unit = {},
+	onReviewHard: () -> Unit = {}
+) {
+	Scaffold(
+		topBar = {
+			AppToolbar(
+				title = "Session Completed",
+				subtitle = "Great job reviewing today's flashcards."
+			)
+		}
+	) { innerPadding ->
+		AppGradientBackground(
+			modifier = Modifier
+				.fillMaxSize()
+				.padding(innerPadding)
+		) {
+			LazyColumn(
+				modifier = Modifier.fillMaxSize(),
+				contentPadding = androidx.compose.foundation.layout.PaddingValues(
+					start = AppDimens.ScreenPadding,
+					end = AppDimens.ScreenPadding,
+					top = 12.dp,
+					bottom = AppDimens.SectionSpacing
+				),
+				verticalArrangement = Arrangement.spacedBy(16.dp)
+			) {
+				item {
+					ScoreBadge()
+				}
+
+				item {
+					Text(
+						text = "Session Completed",
+						style = MaterialTheme.typography.headlineMedium,
+						color = MaterialTheme.colorScheme.onBackground
+					)
+					Spacer(modifier = Modifier.height(8.dp))
+					Text(
+						text = "Great job! You reviewed today's flashcards successfully.",
+						style = MaterialTheme.typography.bodyMedium,
+						color = MaterialTheme.colorScheme.onSurfaceVariant,
+						textAlign = TextAlign.Center
+					)
+				}
+
+				item {
+					Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+						ResultStatCard(
+							title = "Correct",
+							value = "22",
+							color = Secondary,
+							modifier = Modifier.weight(1f)
+						)
+						ResultStatCard(
+							title = "Need Review",
+							value = "3",
+							color = Accent,
+							modifier = Modifier.weight(1f)
+						)
+					}
+				}
+
+				item {
+					Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+						ResultStatCard(
+							title = "Study Time",
+							value = "18m",
+							color = Primary,
+							modifier = Modifier.weight(1f)
+						)
+						ResultStatCard(
+							title = "XP Earned",
+							value = "+120",
+							color = Color(0xFFEC4899),
+							modifier = Modifier.weight(1f)
+						)
+					}
+				}
+
+				item {
+					AppCard(modifier = Modifier.fillMaxWidth()) {
+						Column(modifier = Modifier.padding(AppDimens.CardPadding)) {
+							Text(
+								text = "Next Review Schedule",
+								style = MaterialTheme.typography.titleMedium
+							)
+							Spacer(modifier = Modifier.height(14.dp))
+							ReviewScheduleItem(
+								word = "Acquire",
+								nextReview = "Tomorrow - 09:00 AM"
+							)
+							ReviewScheduleItem(
+								word = "Determine",
+								nextReview = "In 3 days"
+							)
+							ReviewScheduleItem(
+								word = "Significant",
+								nextReview = "Next week"
+							)
+						}
+					}
+				}
+
+				item {
+					PrimaryButton(
+						text = "Continue Learning",
+						onClick = onContinue,
+						modifier = Modifier.fillMaxWidth()
+					)
+				}
+
+				item {
+					SecondaryButton(
+						text = "Review Difficult Words",
+						onClick = onReviewHard,
+						modifier = Modifier.fillMaxWidth()
+					)
+				}
+			}
+		}
+	}
+}
+
+@Composable
+private fun ScoreBadge() {
+	androidx.compose.foundation.layout.Box(
+		modifier = Modifier
+			.size(120.dp)
+			.background(
+				Brush.linearGradient(listOf(Primary, Accent)),
+				CircleShape
+			),
+		contentAlignment = Alignment.Center
+	) {
+		Text(
+			text = "92%",
+			color = Color.White,
+			style = MaterialTheme.typography.displaySmall
+		)
+	}
+}
+
+@Composable
+private fun ResultStatCard(
+	title: String,
+	value: String,
+	color: Color,
+	modifier: Modifier = Modifier
+) {
+	AppCard(modifier = modifier) {
+		Column(
+			modifier = Modifier.padding(AppDimens.CardPadding),
+			horizontalAlignment = Alignment.CenterHorizontally
+		) {
+			Text(
+				text = value,
+				style = MaterialTheme.typography.titleLarge,
+				color = color
+			)
+			Spacer(modifier = Modifier.height(6.dp))
+			Text(
+				text = title,
+				style = MaterialTheme.typography.bodyMedium,
+				color = MaterialTheme.colorScheme.onSurfaceVariant
+			)
+		}
+	}
+}
+
+@Composable
+private fun ReviewScheduleItem(
+	word: String,
+	nextReview: String
+) {
+	Row(
+		modifier = Modifier
+			.fillMaxWidth()
+			.padding(vertical = 8.dp),
+		horizontalArrangement = Arrangement.SpaceBetween,
+		verticalAlignment = Alignment.CenterVertically
+	) {
+		Text(text = word, style = MaterialTheme.typography.bodyMedium)
+		Text(
+			text = nextReview,
+			style = MaterialTheme.typography.bodyMedium,
+			color = MaterialTheme.colorScheme.primary
+		)
+	}
+}
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun FlashcardResultScreenPreview() {
+	ProjectEnlishLearningTheme {
+		FlashcardResultScreen()
+	}
+}
+
