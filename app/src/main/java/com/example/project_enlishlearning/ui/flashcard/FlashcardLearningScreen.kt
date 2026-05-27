@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Replay
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -42,6 +43,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.project_enlishlearning.ui.components.AppCard
 import com.example.project_enlishlearning.ui.components.AppGradientBackground
 import com.example.project_enlishlearning.ui.components.AppSectionHeader
@@ -58,6 +61,7 @@ import com.example.project_enlishlearning.ui.theme.Warning
 
 @Composable
 fun FlashcardLearningScreen(
+    navController: NavController,
     selected: BottomNavItem = BottomNavItem.Flashcards,
     onBottomItemSelected: (BottomNavItem) -> Unit = {}
 ) {
@@ -78,7 +82,9 @@ fun FlashcardLearningScreen(
         topBar = {
             AppToolbar(
                 title = "Flashcard Learning",
-                subtitle = "Review vocabulary using spaced repetition."
+                subtitle = "Review vocabulary using spaced repetition.",
+                navigationIcon = Icons.AutoMirrored.Filled.ArrowBack,
+                onNavigationClick = { navController.popBackStack() }
             )
         },
         bottomBar = {
@@ -360,6 +366,6 @@ private fun SrsButton(
 @Composable
 fun FlashcardLearningPreview() {
     ProjectEnlishLearningTheme {
-        FlashcardLearningScreen()
+        FlashcardLearningScreen(navController = rememberNavController())
     }
 }

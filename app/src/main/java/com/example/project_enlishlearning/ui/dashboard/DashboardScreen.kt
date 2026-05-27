@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.Notifications
@@ -38,6 +39,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.project_enlishlearning.ui.components.AppCard
 import com.example.project_enlishlearning.ui.components.AppGradientBackground
 import com.example.project_enlishlearning.ui.components.AppSectionHeader
@@ -51,6 +54,7 @@ import com.example.project_enlishlearning.ui.theme.Secondary
 
 @Composable
 fun DashboardScreen(
+    navController: NavController,
     selected: BottomNavItem = BottomNavItem.Dashboard,
     onBottomItemSelected: (BottomNavItem) -> Unit = {}
 ) {
@@ -62,7 +66,9 @@ fun DashboardScreen(
         topBar = {
             AppToolbar(
                 title = "Learning Progress",
-                subtitle = "Track your English learning performance."
+                subtitle = "Track your English learning performance.",
+                navigationIcon = Icons.AutoMirrored.Filled.ArrowBack,
+                onNavigationClick = { navController.popBackStack() }
             )
         },
         bottomBar = {
@@ -175,7 +181,7 @@ fun DashboardScreen(
 
 @Composable
 fun ProgressDashboardScreen() {
-    DashboardScreen()
+    DashboardScreen(navController = rememberNavController())
 }
 
 @Composable
@@ -309,7 +315,7 @@ private fun NotificationToggleItem(
 @Composable
 fun ProgressDashboardPreview() {
     ProjectEnlishLearningTheme {
-        DashboardScreen()
+        DashboardScreen(navController = rememberNavController())
     }
 }
 

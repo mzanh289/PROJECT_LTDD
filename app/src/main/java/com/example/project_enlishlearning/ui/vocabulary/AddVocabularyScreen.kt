@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.automirrored.filled.Note
@@ -22,6 +23,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.project_enlishlearning.ui.components.AppCard
 import com.example.project_enlishlearning.ui.components.AppGradientBackground
 import com.example.project_enlishlearning.ui.components.AppTextField
@@ -32,6 +35,7 @@ import com.example.project_enlishlearning.ui.theme.ProjectEnlishLearningTheme
 
 @Composable
 fun AddVocabularyScreen(
+    navController: NavController,
     onSave: () -> Unit = {}
 ) {
     var word by remember { mutableStateOf("") }
@@ -47,7 +51,9 @@ fun AddVocabularyScreen(
         topBar = {
             AppToolbar(
                 title = "Add Vocabulary",
-                subtitle = "Add detailed vocabulary information for learning."
+                subtitle = "Add detailed vocabulary information for learning.",
+                navigationIcon = Icons.AutoMirrored.Filled.ArrowBack,
+                onNavigationClick = { navController.popBackStack() }
             )
         }
     ) { innerPadding ->
@@ -149,6 +155,6 @@ fun AddVocabularyScreen(
 @Composable
 fun AddVocabularyPreview() {
     ProjectEnlishLearningTheme {
-        AddVocabularyScreen()
+        AddVocabularyScreen(navController = rememberNavController())
     }
 }

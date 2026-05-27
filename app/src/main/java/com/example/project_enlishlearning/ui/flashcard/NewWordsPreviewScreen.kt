@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material3.Icon
@@ -29,6 +30,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.project_enlishlearning.ui.components.AppCard
 import com.example.project_enlishlearning.ui.components.AppGradientBackground
 import com.example.project_enlishlearning.ui.components.AppToolbar
@@ -45,6 +48,7 @@ data class FlashcardWord(
 
 @Composable
 fun NewWordsPreviewScreen(
+    navController: NavController,
     onStart: () -> Unit = {}
 ) {
     val words = remember {
@@ -74,7 +78,9 @@ fun NewWordsPreviewScreen(
         topBar = {
             AppToolbar(
                 title = "Today's New Words",
-                subtitle = "Preview vocabulary before starting flashcard learning."
+                subtitle = "Preview vocabulary before starting flashcard learning.",
+                navigationIcon = Icons.AutoMirrored.Filled.ArrowBack,
+                onNavigationClick = { navController.popBackStack() }
             )
         },
         bottomBar = {
@@ -234,6 +240,6 @@ private fun FlashcardPreviewCard(item: FlashcardWord) {
 @Composable
 fun NewWordsPreviewScreenPreview() {
     ProjectEnlishLearningTheme {
-        NewWordsPreviewScreen()
+        NewWordsPreviewScreen(navController = rememberNavController())
     }
 }

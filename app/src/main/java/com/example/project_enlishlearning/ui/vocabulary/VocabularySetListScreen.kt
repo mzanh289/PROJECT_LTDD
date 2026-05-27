@@ -20,6 +20,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.MoreVert
@@ -44,6 +45,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.project_enlishlearning.ui.components.AppCard
 import com.example.project_enlishlearning.ui.components.AppGradientBackground
 import com.example.project_enlishlearning.ui.components.AppTagChip
@@ -66,6 +69,7 @@ data class VocabularySet(
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun VocabularySetListScreen(
+    navController: NavController,
     selected: BottomNavItem = BottomNavItem.Vocabulary,
     onBottomItemSelected: (BottomNavItem) -> Unit = {},
     onAddSet: () -> Unit = {}
@@ -109,7 +113,9 @@ fun VocabularySetListScreen(
         topBar = {
             AppToolbar(
                 title = "Vocabulary Sets",
-                subtitle = "Manage and review your vocabulary collections."
+                subtitle = "Manage and review your vocabulary collections.",
+                navigationIcon = Icons.AutoMirrored.Filled.ArrowBack,
+                onNavigationClick = { navController.popBackStack() }
             )
         },
         bottomBar = {
@@ -276,6 +282,6 @@ private fun VocabularySetCard(item: VocabularySet) {
 @Composable
 fun VocabularySetListPreview() {
     ProjectEnlishLearningTheme {
-        VocabularySetListScreen()
+        VocabularySetListScreen(navController = rememberNavController())
     }
 }

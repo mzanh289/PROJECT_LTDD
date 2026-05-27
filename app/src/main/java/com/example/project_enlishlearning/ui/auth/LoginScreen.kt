@@ -12,7 +12,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -27,6 +29,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import com.example.project_enlishlearning.ui.components.AppToolbar
 import com.example.project_enlishlearning.ui.components.AppCard
 import com.example.project_enlishlearning.ui.components.AppGradientBackground
 import com.example.project_enlishlearning.ui.components.AppPasswordField
@@ -39,6 +44,7 @@ import com.example.project_enlishlearning.ui.theme.ProjectEnlishLearningTheme
 
 @Composable
 fun LoginScreen(
+    navController: NavController,
     onSignIn: () -> Unit = {},
     onGoogle: () -> Unit = {},
     onRegister: () -> Unit = {},
@@ -48,130 +54,142 @@ fun LoginScreen(
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
 
-    AppGradientBackground(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        Column(
+    Scaffold(
+        topBar = {
+            AppToolbar(
+                title = "Sign In",
+                navigationIcon = Icons.AutoMirrored.Filled.ArrowBack,
+                onNavigationClick = { navController.popBackStack() }
+            )
+        }
+    ) { innerPadding ->
+        AppGradientBackground(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(AppDimens.ScreenPadding),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(innerPadding)
         ) {
-            Spacer(modifier = Modifier.height(36.dp))
-            AuthLogo()
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = "Welcome Back",
-                style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-
-            Spacer(modifier = Modifier.height(6.dp))
-
-            Text(
-                text = "Please sign in to continue learning.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            Spacer(modifier = Modifier.height(AppDimens.SectionSpacing))
-
-            AppCard(
-                modifier = Modifier.fillMaxWidth()
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(AppDimens.ScreenPadding),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Column(modifier = Modifier.padding(AppDimens.CardPadding)) {
-                    AppTextField(
-                        value = email,
-                        onValueChange = { email = it },
-                        label = "Email Address",
-                        leadingIcon = Icons.Default.Email,
-                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
-                            keyboardType = KeyboardType.Email
-                        )
-                    )
+                Spacer(modifier = Modifier.height(16.dp))
+                AuthLogo()
+                Spacer(modifier = Modifier.height(16.dp))
 
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    AppPasswordField(
-                        value = password,
-                        onValueChange = { password = it },
-                        label = "Password",
-                        visible = passwordVisible,
-                        onToggle = { passwordVisible = !passwordVisible }
-                    )
-
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.End
-                    ) {
-                        Text(
-                            text = "Forgot Password?",
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Medium,
-                            modifier = Modifier.clickable { onForgotPassword() }
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(18.dp))
-
-                    PrimaryButton(
-                        text = "Sign In",
-                        onClick = onSignIn,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    Spacer(modifier = Modifier.height(18.dp))
-
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        HorizontalDivider(modifier = Modifier.weight(1f))
-                        Text(
-                            text = " OR ",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(horizontal = 8.dp)
-                        )
-                        HorizontalDivider(modifier = Modifier.weight(1f))
-                    }
-
-                    Spacer(modifier = Modifier.height(18.dp))
-
-                    SecondaryButton(
-                        text = "Continue with Google",
-                        onClick = onGoogle,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = "Don't have an account?",
+                    text = "Welcome Back",
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                Text(
+                    text = "Please sign in to continue learning.",
+                    style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Spacer(modifier = Modifier.width(6.dp))
+
+                Spacer(modifier = Modifier.height(AppDimens.SectionSpacing))
+
+                AppCard(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(AppDimens.CardPadding)) {
+                        AppTextField(
+                            value = email,
+                            onValueChange = { email = it },
+                            label = "Email Address",
+                            leadingIcon = Icons.Default.Email,
+                            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                                keyboardType = KeyboardType.Email
+                            )
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        AppPasswordField(
+                            value = password,
+                            onValueChange = { password = it },
+                            label = "Password",
+                            visible = passwordVisible,
+                            onToggle = { passwordVisible = !passwordVisible }
+                        )
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = androidx.compose.foundation.layout.Arrangement.End
+                        ) {
+                            Text(
+                                text = "Forgot Password?",
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.Medium,
+                                modifier = Modifier.clickable { onForgotPassword() }
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(18.dp))
+
+                        PrimaryButton(
+                            text = "Sign In",
+                            onClick = onSignIn,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        Spacer(modifier = Modifier.height(18.dp))
+
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            HorizontalDivider(modifier = Modifier.weight(1f))
+                            Text(
+                                text = " OR ",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(horizontal = 8.dp)
+                            )
+                            HorizontalDivider(modifier = Modifier.weight(1f))
+                        }
+
+                        Spacer(modifier = Modifier.height(18.dp))
+
+                        SecondaryButton(
+                            text = "Continue with Google",
+                            onClick = onGoogle,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "Don't have an account?",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "Register",
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.clickable { onRegister() }
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
                 Text(
-                    text = "Register",
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.clickable { onRegister() }
+                    text = "By continuing, you agree to our Terms & Privacy Policy.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+
+                Spacer(modifier = Modifier.height(36.dp))
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = "By continuing, you agree to our Terms & Privacy Policy.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            Spacer(modifier = Modifier.height(36.dp))
         }
     }
 }
@@ -180,6 +198,6 @@ fun LoginScreen(
 @Composable
 fun LoginScreenPreview() {
     ProjectEnlishLearningTheme {
-        LoginScreen()
+        LoginScreen(navController = rememberNavController())
     }
 }

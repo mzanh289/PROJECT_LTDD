@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.School
@@ -31,6 +32,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.project_enlishlearning.ui.components.AppCard
 import com.example.project_enlishlearning.ui.components.AppGradientBackground
 import com.example.project_enlishlearning.ui.components.AppSectionHeader
@@ -45,6 +48,7 @@ import androidx.compose.foundation.layout.width
 
 @Composable
 fun ProfileScreen(
+	navController: NavController,
 	selected: BottomNavItem = BottomNavItem.Profile,
 	onBottomItemSelected: (BottomNavItem) -> Unit = {}
 ) {
@@ -62,7 +66,9 @@ fun ProfileScreen(
 		topBar = {
 			AppToolbar(
 				title = "Profile",
-				subtitle = "Track your learning goals and progress."
+				subtitle = "Track your learning goals and progress.",
+				navigationIcon = Icons.AutoMirrored.Filled.ArrowBack,
+				onNavigationClick = { navController.popBackStack() }
 			)
 		},
 		bottomBar = {
@@ -269,7 +275,7 @@ private data class ProfileStat(
 @Composable
 fun ProfileScreenPreview() {
 	ProjectEnlishLearningTheme {
-		ProfileScreen()
+		ProfileScreen(navController = rememberNavController())
 	}
 }
 

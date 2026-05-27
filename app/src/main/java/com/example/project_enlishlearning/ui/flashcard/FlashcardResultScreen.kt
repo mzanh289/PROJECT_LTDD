@@ -2,6 +2,7 @@ package com.example.project_enlishlearning.ui.flashcard
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,6 +14,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -25,6 +28,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.project_enlishlearning.ui.components.AppCard
 import com.example.project_enlishlearning.ui.components.AppGradientBackground
 import com.example.project_enlishlearning.ui.components.AppToolbar
@@ -38,6 +43,7 @@ import com.example.project_enlishlearning.ui.theme.Secondary
 
 @Composable
 fun FlashcardResultScreen(
+    navController: NavController,
 	onContinue: () -> Unit = {},
 	onReviewHard: () -> Unit = {}
 ) {
@@ -45,7 +51,9 @@ fun FlashcardResultScreen(
 		topBar = {
 			AppToolbar(
 				title = "Session Completed",
-				subtitle = "Great job reviewing today's flashcards."
+				subtitle = "Great job reviewing today's flashcards.",
+				navigationIcon = Icons.AutoMirrored.Filled.ArrowBack,
+                onNavigationClick = { navController.popBackStack() }
 			)
 		}
 	) { innerPadding ->
@@ -163,20 +171,33 @@ fun FlashcardResultScreen(
 
 @Composable
 private fun ScoreBadge() {
-	androidx.compose.foundation.layout.Box(
-		modifier = Modifier
-			.size(120.dp)
-			.background(
-				Brush.linearGradient(listOf(Primary, Accent)),
-				CircleShape
-			),
+
+	Box(
+		modifier = Modifier.fillMaxSize(),
 		contentAlignment = Alignment.Center
 	) {
-		Text(
-			text = "92%",
-			color = Color.White,
-			style = MaterialTheme.typography.displaySmall
-		)
+
+		Box(
+			modifier = Modifier
+				.size(120.dp)
+				.background(
+					brush = Brush.linearGradient(
+						colors = listOf(
+							Color(0xFF4CAF50),
+							Color(0xFF81C784)
+						)
+					),
+					shape = CircleShape
+				),
+			contentAlignment = Alignment.Center
+		) {
+
+			Text(
+				text = "92%",
+				color = Color.White,
+				style = MaterialTheme.typography.displaySmall
+			)
+		}
 	}
 }
 
@@ -232,7 +253,7 @@ private fun ReviewScheduleItem(
 @Composable
 fun FlashcardResultScreenPreview() {
 	ProjectEnlishLearningTheme {
-		FlashcardResultScreen()
+		FlashcardResultScreen(navController = rememberNavController())
 	}
 }
 
