@@ -29,6 +29,8 @@ import com.example.project_enlishlearning.ui.components.AppCard
 import com.example.project_enlishlearning.ui.components.AppGradientBackground
 import com.example.project_enlishlearning.ui.components.AppTextField
 import com.example.project_enlishlearning.ui.components.AppToolbar
+import com.example.project_enlishlearning.ui.components.BottomNavItem
+import com.example.project_enlishlearning.ui.components.BottomNavigationBar
 import com.example.project_enlishlearning.ui.components.PrimaryButton
 import com.example.project_enlishlearning.ui.theme.AppDimens
 import com.example.project_enlishlearning.ui.theme.ProjectEnlishLearningTheme
@@ -36,6 +38,8 @@ import com.example.project_enlishlearning.ui.theme.ProjectEnlishLearningTheme
 @Composable
 fun AddVocabularyScreen(
     navController: NavController,
+    selected: BottomNavItem = BottomNavItem.Vocabulary,
+    onBottomItemSelected: (BottomNavItem) -> Unit = {},
     onSave: () -> Unit = {}
 ) {
     var word by remember { mutableStateOf("") }
@@ -54,6 +58,12 @@ fun AddVocabularyScreen(
                 subtitle = "Add detailed vocabulary information for learning.",
                 navigationIcon = Icons.AutoMirrored.Filled.ArrowBack,
                 onNavigationClick = { navController.popBackStack() }
+            )
+        },
+        bottomBar = {
+            BottomNavigationBar(
+                selected = selected,
+                onItemSelected = onBottomItemSelected
             )
         }
     ) { innerPadding ->

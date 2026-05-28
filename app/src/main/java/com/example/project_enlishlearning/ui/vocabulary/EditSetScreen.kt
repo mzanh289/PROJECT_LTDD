@@ -1,63 +1,50 @@
 package com.example.project_enlishlearning.ui.vocabulary
 
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.Description
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
-import com.example.project_enlishlearning.ui.components.AppCard
-import com.example.project_enlishlearning.ui.components.AppGradientBackground
-import com.example.project_enlishlearning.ui.components.AppTextField
-import com.example.project_enlishlearning.ui.components.AppToolbar
-import com.example.project_enlishlearning.ui.components.BottomNavItem
-import com.example.project_enlishlearning.ui.components.BottomNavigationBar
-import com.example.project_enlishlearning.ui.components.PrimaryButton
+import com.example.project_enlishlearning.ui.components.*
 import com.example.project_enlishlearning.ui.theme.AppDimens
-import com.example.project_enlishlearning.ui.theme.ProjectEnlishLearningTheme
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun CreateVocabularySetScreen(
+fun EditVocabularySetScreen(
     navController: NavController,
     selected: BottomNavItem = BottomNavItem.Vocabulary,
     onBottomItemSelected: (BottomNavItem) -> Unit = {},
-    onCreate: () -> Unit = {}
+    setId: String = "",
+    onSave: () -> Unit = {}
 ) {
-    var setName by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
 
-    val selectedTags = remember { mutableStateListOf<String>() }
+    // 🔥 mock data (sau này replace bằng Room/ViewModel)
+    var setName by remember {
+        mutableStateOf("IELTS Academic Vocabulary")
+    }
+
+    var description by remember {
+        mutableStateOf("Common academic vocabulary for IELTS Reading and Writing.")
+    }
+
     val tags = listOf("IELTS", "Business", "Travel", "TOEIC", "Academic", "Daily Life")
+    val selectedTags = remember {
+        mutableStateListOf("IELTS", "Academic")
+    }
 
     Scaffold(
         topBar = {
             AppToolbar(
-                title = "Create Vocabulary Set",
-                subtitle = "Organize vocabulary into custom learning collections.",
+                title = "Edit Vocabulary Set",
+                subtitle = "Update your vocabulary collection.",
                 navigationIcon = Icons.AutoMirrored.Filled.ArrowBack,
                 onNavigationClick = { navController.popBackStack() }
             )
@@ -69,13 +56,15 @@ fun CreateVocabularySetScreen(
             )
         }
     ) { innerPadding ->
+
         AppGradientBackground(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
+
             LazyColumn(
-                contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                contentPadding = PaddingValues(
                     start = AppDimens.ScreenPadding,
                     end = AppDimens.ScreenPadding,
                     top = 12.dp,
@@ -83,18 +72,24 @@ fun CreateVocabularySetScreen(
                 ),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+
                 item {
+
                     AppCard(modifier = Modifier.fillMaxWidth()) {
-                        androidx.compose.foundation.layout.Column(
+
+                        Column(
                             modifier = Modifier.padding(AppDimens.CardPadding)
                         ) {
+
                             AppTextField(
                                 value = setName,
                                 onValueChange = { setName = it },
                                 label = "Vocabulary Set Name",
                                 leadingIcon = Icons.Default.Book
                             )
+
                             Spacer(modifier = Modifier.height(16.dp))
+
                             AppTextField(
                                 value = description,
                                 onValueChange = { description = it },
@@ -117,7 +112,9 @@ fun CreateVocabularySetScreen(
                                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                                 verticalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
+
                                 tags.forEach { tag ->
+
                                     FilterChip(
                                         selected = selectedTags.contains(tag),
                                         onClick = {
@@ -139,8 +136,12 @@ fun CreateVocabularySetScreen(
                             Spacer(modifier = Modifier.height(22.dp))
 
                             PrimaryButton(
-                                text = "Create Set",
-                                onClick = onCreate,
+                                text = "Save Changes",
+                                onClick = {
+                                    // TODO: update Room DB
+                                    onSave()
+                                    navController.popBackStack()
+                                },
                                 modifier = Modifier.fillMaxWidth()
                             )
                         }
@@ -148,13 +149,5 @@ fun CreateVocabularySetScreen(
                 }
             }
         }
-    }
-}
-
-@Preview(showSystemUi = true, showBackground = true)
-@Composable
-fun CreateVocabularySetPreview() {
-    ProjectEnlishLearningTheme {
-        CreateVocabularySetScreen(navController = rememberNavController())
     }
 }

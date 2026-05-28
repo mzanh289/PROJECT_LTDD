@@ -12,5 +12,8 @@ sealed class Screen(val route: String) {
 	data object FlashcardResult : Screen("flashcard_result")
 	data object NewWordsPreview : Screen("new_words_preview")
 	data object Profile : Screen("profile")
+	data object Notification : Screen("notification")
+	data object VocabularySetDetail : Screen("vocabulary_set_detail")
+	data object EditVocabularySet : Screen("edit_vocabulary_set")
 }
 

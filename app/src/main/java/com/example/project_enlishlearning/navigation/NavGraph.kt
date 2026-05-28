@@ -12,10 +12,13 @@ import com.example.project_enlishlearning.ui.dashboard.DashboardScreen
 import com.example.project_enlishlearning.ui.flashcard.FlashcardLearningScreen
 import com.example.project_enlishlearning.ui.flashcard.FlashcardResultScreen
 import com.example.project_enlishlearning.ui.flashcard.NewWordsPreviewScreen
+import com.example.project_enlishlearning.ui.notification.NotificationSettingsScreen
 import com.example.project_enlishlearning.ui.profile.ProfileScreen
 import com.example.project_enlishlearning.ui.splash.SplashScreen
 import com.example.project_enlishlearning.ui.vocabulary.AddVocabularyScreen
 import com.example.project_enlishlearning.ui.vocabulary.CreateVocabularySetScreen
+import com.example.project_enlishlearning.ui.vocabulary.EditVocabularySetScreen
+import com.example.project_enlishlearning.ui.vocabulary.VocabularySetDetailScreen
 import com.example.project_enlishlearning.ui.vocabulary.VocabularySetListScreen
 
 @Composable
@@ -61,19 +64,37 @@ fun AppNavGraph() {
 		composable(Screen.CreateSet.route) {
 			CreateVocabularySetScreen(
 				navController = navController,
-				onCreate = { navController.navigate(Screen.AddVocabulary.route) }
+				selected = BottomNavItem.Vocabulary,
+				onBottomItemSelected = { item -> navigateToBottomTab(navController, item) },
+				onCreate = { navController.navigate(Screen.VocabularySetList.route) }
 			)
 		}
 		composable(Screen.AddVocabulary.route) {
 			AddVocabularyScreen(
 				navController = navController,
+				selected = BottomNavItem.Vocabulary,
+				onBottomItemSelected = { item -> navigateToBottomTab(navController, item) },
 				onSave = { navController.navigate(Screen.VocabularySetList.route) }
+			)
+		}
+		composable(Screen.VocabularySetDetail.route) {
+			VocabularySetDetailScreen(
+				navController = navController,
+				selected = BottomNavItem.Vocabulary,
+				onBottomItemSelected = { item -> navigateToBottomTab(navController, item) }
+			)
+		}
+		composable(Screen.EditVocabularySet.route) {
+			EditVocabularySetScreen(
+				navController = navController,
+				selected = BottomNavItem.Vocabulary,
+				onBottomItemSelected = { item -> navigateToBottomTab(navController, item) }
 			)
 		}
 		composable(Screen.FlashcardLearning.route) {
 			FlashcardLearningScreen(
 				navController = navController,
-				selected = BottomNavItem.Flashcards,
+				selected = BottomNavItem.Notification,
 				onBottomItemSelected = { item -> navigateToBottomTab(navController, item) }
 			)
 		}
@@ -96,6 +117,13 @@ fun AppNavGraph() {
 				onBottomItemSelected = { item -> navigateToBottomTab(navController, item) }
 			)
 		}
+		composable(Screen.Notification.route) {
+			NotificationSettingsScreen(
+				navController = navController,
+				selected = BottomNavItem.Notification,
+				onBottomItemSelected = { item -> navigateToBottomTab(navController, item) }
+			)
+		}
 	}
 }
 
@@ -103,7 +131,7 @@ private fun navigateToBottomTab(navController: NavController, item: BottomNavIte
 	val target = when (item) {
 		BottomNavItem.Dashboard -> Screen.Dashboard.route
 		BottomNavItem.Vocabulary -> Screen.VocabularySetList.route
-		BottomNavItem.Flashcards -> Screen.FlashcardLearning.route
+		BottomNavItem.Notification -> Screen.Notification.route
 		BottomNavItem.Profile -> Screen.Profile.route
 	}
 

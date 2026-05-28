@@ -4,6 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.FlashOn
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Icon
@@ -17,8 +18,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 enum class BottomNavItem(val label: String, val icon: ImageVector) {
 	Dashboard("Dashboard", Icons.Default.Home),
 	Vocabulary("Vocabulary", Icons.AutoMirrored.Filled.MenuBook),
-	Flashcards("Flashcards", Icons.Default.FlashOn),
-	Profile("Profile", Icons.Default.Person)
+	Profile("Profile", Icons.Default.Person),
+
+	Notification("Notification", Icons.Default.Notifications)
 }
 
 @Composable

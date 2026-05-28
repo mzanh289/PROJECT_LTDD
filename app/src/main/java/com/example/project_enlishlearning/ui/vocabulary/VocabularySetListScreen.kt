@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -57,6 +58,9 @@ import com.example.project_enlishlearning.ui.components.BottomNavigationBar
 import com.example.project_enlishlearning.ui.components.PrimaryButton
 import com.example.project_enlishlearning.ui.theme.AppDimens
 import com.example.project_enlishlearning.ui.theme.ProjectEnlishLearningTheme
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import com.example.project_enlishlearning.navigation.Screen
 
 data class VocabularySet(
     val title: String,
@@ -163,7 +167,7 @@ fun VocabularySetListScreen(
                 }
 
                 items(vocabularySets.filter { it.title.contains(search, true) }) { item ->
-                    VocabularySetCard(item)
+                    VocabularySetCard(item, navController)
                 }
             }
         }
@@ -172,7 +176,13 @@ fun VocabularySetListScreen(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun VocabularySetCard(item: VocabularySet) {
+private fun VocabularySetCard(
+    item: VocabularySet,
+    navController: NavController,
+    onStart: () -> Unit = { navController.navigate(Screen.AddVocabulary.route)},
+    onViewSet: () -> Unit = { navController.navigate(Screen.VocabularySetDetail.route)},
+    onEditSet: () -> Unit = { navController.navigate(Screen.EditVocabularySet.route)}
+) {
     AppCard(
         modifier = Modifier
             .fillMaxWidth()
@@ -213,11 +223,40 @@ private fun VocabularySetCard(item: VocabularySet) {
                     )
                 }
 
-                IconButton(onClick = { }) {
-                    Icon(
-                        imageVector = Icons.Default.MoreVert,
-                        contentDescription = null
-                    )
+                var expanded by remember { mutableStateOf(false) }
+
+                Box {
+                    IconButton(
+                        onClick = { expanded = true }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = null
+                        )
+                    }
+
+                    DropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("View set") },
+                            onClick = onViewSet
+                        )
+
+                        DropdownMenuItem(
+                            text = { Text("Edit Set") },
+                            onClick = onEditSet
+                        )
+
+                        DropdownMenuItem(
+                            text = { Text("Delete Set") },
+                            onClick = {
+                                expanded = false
+                                // Handle delete
+                            }
+                        )
+                    }
                 }
             }
 
@@ -270,8 +309,8 @@ private fun VocabularySetCard(item: VocabularySet) {
             Spacer(modifier = Modifier.height(16.dp))
 
             PrimaryButton(
-                text = "View Set",
-                onClick = { },
+                text = "Start Flashcard",
+                onClick = onStart,
                 modifier = Modifier.fillMaxWidth()
             )
         }
