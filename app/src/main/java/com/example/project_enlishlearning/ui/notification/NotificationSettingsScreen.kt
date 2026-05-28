@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,8 +14,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Alarm
@@ -23,7 +26,7 @@ import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.Schedule
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -90,11 +93,12 @@ fun NotificationSettingsScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
                     .padding(
                         start = AppDimens.ScreenPadding,
                         end = AppDimens.ScreenPadding,
                         top = 12.dp,
-                        bottom = AppDimens.SectionSpacing
+                        bottom = AppDimens.SectionSpacing + 16.dp
                     ),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
@@ -103,8 +107,8 @@ fun NotificationSettingsScreen(
                 NotificationSection(title = "Daily Reminder") {
                     NotificationToggleItem(
                         icon = Icons.Default.NotificationsActive,
-                        title = "Nhac hoc moi ngay",
-                        subtitle = "Nhac ban hoc tu vung moi ngay theo lich ca nhan",
+                        title = "Daily learning reminder",
+                        subtitle = "Remind you to learn new vocabulary every day based on your schedule",
                         checked = dailyReminder,
                         recommended = true,
                         onCheckedChange = { dailyReminder = it }
@@ -114,8 +118,8 @@ fun NotificationSettingsScreen(
                 NotificationSection(title = "Review Reminder") {
                     NotificationToggleItem(
                         icon = Icons.Default.Schedule,
-                        title = "Nhac tu den han on",
-                        subtitle = "Dua tren thuat toan Spaced Repetition (SM-2)",
+                        title = "Review due reminder",
+                        subtitle = "Based on the Spaced Repetition (SM-2) algorithm",
                         checked = reviewReminder,
                         onCheckedChange = { reviewReminder = it }
                     )
@@ -125,22 +129,22 @@ fun NotificationSettingsScreen(
                     NotificationToggleItem(
                         icon = Icons.Default.Notifications,
                         title = "Push Notification",
-                        subtitle = "Nhan thong bao qua dien thoai",
+                        subtitle = "Receive notifications on your phone",
                         checked = pushNotification,
                         onCheckedChange = { pushNotification = it }
                     )
 
-                    Divider(
+                    HorizontalDivider(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 10.dp),
+                            .padding(vertical = 6.dp),
                         color = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
                     )
 
                     NotificationToggleItem(
                         icon = Icons.Default.Email,
                         title = "Email Notification",
-                        subtitle = "Nhan thong bao qua email",
+                        subtitle = "Receive notifications via email",
                         checked = emailNotification,
                         onCheckedChange = { emailNotification = it }
                     )
@@ -206,16 +210,18 @@ fun NotificationHeaderCard() {
 @Composable
 fun NotificationSection(
     title: String,
-    content: @Composable () -> Unit
+    content: @Composable ColumnScope.() -> Unit
 ) {
     AppCard(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(AppDimens.CardPadding)) {
+        Column(
+            modifier = Modifier.padding(AppDimens.CardPadding),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold
             )
-            Spacer(modifier = Modifier.height(12.dp))
             content()
         }
     }
@@ -240,9 +246,12 @@ fun NotificationToggleItem(
     )
 
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        // 1. Icon bên trái
         Box(
             modifier = Modifier
                 .size(44.dp)
@@ -258,12 +267,20 @@ fun NotificationToggleItem(
 
         Spacer(modifier = Modifier.width(12.dp))
 
-        Column(modifier = Modifier.weight(1f)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.Center
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.weight(1f, fill = false) // QUAN TRỌNG: Giúp chữ tự ngắt dòng nếu quá dài chứ không đẩy badge ra ngoài screen
                 )
 
                 if (recommended) {
@@ -278,6 +295,8 @@ fun NotificationToggleItem(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
+
+        Spacer(modifier = Modifier.width(8.dp)) // Khoảng cách an toàn trước khi đến Switch
 
         Switch(
             checked = checked,

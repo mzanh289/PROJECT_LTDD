@@ -93,8 +93,7 @@ fun VocabularySetDetailScreen(
     selected: BottomNavItem = BottomNavItem.Vocabulary,
     onBottomItemSelected: (BottomNavItem) -> Unit = {},
     set: VocabularySetDetailUi = sampleVocabularySet,
-    initialWords: List<VocabularyWordUi> = sampleVocabularyWords,
-    onAddVocabulary: () -> Unit = { navController.navigate(Screen.AddVocabulary.route) }
+    initialWords: List<VocabularyWordUi> = sampleVocabularyWords
 ) {
     var searchQuery by remember { mutableStateOf("") }
     val words = remember { mutableStateListOf(*initialWords.toTypedArray()) }
@@ -137,7 +136,9 @@ fun VocabularySetDetailScreen(
                 item {
                     PrimaryButton(
                         text = "Add Vocabulary",
-                        onClick = onAddVocabulary,
+                        onClick = {
+                            navController.navigate(Screen.AddVocabulary.route)
+                        },
                         leadingIcon = Icons.Default.Add,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -157,7 +158,9 @@ fun VocabularySetDetailScreen(
 
                 if (filteredWords.isEmpty()) {
                     item {
-                        EmptyStateView(onAddVocabulary = onAddVocabulary)
+                        EmptyStateView(onAddVocabulary = {
+                            navController.navigate(Screen.AddVocabulary.route)
+                        })
                     }
                 } else {
                     itemsIndexed(filteredWords, key = { _, item -> item.word }) { index, item ->

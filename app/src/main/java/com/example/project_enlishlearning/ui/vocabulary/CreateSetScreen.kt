@@ -29,6 +29,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.project_enlishlearning.navigation.Screen
 import com.example.project_enlishlearning.ui.components.AppCard
 import com.example.project_enlishlearning.ui.components.AppGradientBackground
 import com.example.project_enlishlearning.ui.components.AppTextField
@@ -44,8 +45,7 @@ import com.example.project_enlishlearning.ui.theme.ProjectEnlishLearningTheme
 fun CreateVocabularySetScreen(
     navController: NavController,
     selected: BottomNavItem = BottomNavItem.Vocabulary,
-    onBottomItemSelected: (BottomNavItem) -> Unit = {},
-    onCreate: () -> Unit = {}
+    onBottomItemSelected: (BottomNavItem) -> Unit = {}
 ) {
     var setName by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
@@ -140,7 +140,9 @@ fun CreateVocabularySetScreen(
 
                             PrimaryButton(
                                 text = "Create Set",
-                                onClick = onCreate,
+                                onClick = {
+                                    navController.navigate(Screen.VocabularySetList.route)
+                                },
                                 modifier = Modifier.fillMaxWidth()
                             )
                         }

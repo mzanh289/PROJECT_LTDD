@@ -12,7 +12,9 @@ import com.example.project_enlishlearning.ui.dashboard.DashboardScreen
 import com.example.project_enlishlearning.ui.flashcard.FlashcardLearningScreen
 import com.example.project_enlishlearning.ui.flashcard.FlashcardResultScreen
 import com.example.project_enlishlearning.ui.flashcard.NewWordsPreviewScreen
+import com.example.project_enlishlearning.ui.flashcard.ReviewVocabularyScreen
 import com.example.project_enlishlearning.ui.notification.NotificationSettingsScreen
+import com.example.project_enlishlearning.ui.profile.EditProfileScreen
 import com.example.project_enlishlearning.ui.profile.ProfileScreen
 import com.example.project_enlishlearning.ui.splash.SplashScreen
 import com.example.project_enlishlearning.ui.vocabulary.AddVocabularyScreen
@@ -34,16 +36,12 @@ fun AppNavGraph() {
 		}
 		composable(Screen.Login.route) {
 			LoginScreen(
-				navController = navController,
-				onSignIn = { navController.navigate(Screen.Dashboard.route) },
-				onRegister = { navController.navigate(Screen.Register.route) }
+				navController = navController
 			)
 		}
 		composable(Screen.Register.route) {
 			RegisterScreen(
-				navController = navController,
-				onCreateAccount = { navController.navigate(Screen.Dashboard.route) },
-				onSignIn = { navController.navigate(Screen.Login.route) }
+				navController = navController
 			)
 		}
 		composable(Screen.Dashboard.route) {
@@ -57,16 +55,14 @@ fun AppNavGraph() {
 			VocabularySetListScreen(
 				navController = navController,
 				selected = BottomNavItem.Vocabulary,
-				onBottomItemSelected = { item -> navigateToBottomTab(navController, item) },
-				onAddSet = { navController.navigate(Screen.CreateSet.route) }
+				onBottomItemSelected = { item -> navigateToBottomTab(navController, item) }
 			)
 		}
 		composable(Screen.CreateSet.route) {
 			CreateVocabularySetScreen(
 				navController = navController,
 				selected = BottomNavItem.Vocabulary,
-				onBottomItemSelected = { item -> navigateToBottomTab(navController, item) },
-				onCreate = { navController.navigate(Screen.VocabularySetList.route) }
+				onBottomItemSelected = { item -> navigateToBottomTab(navController, item) }
 			)
 		}
 		composable(Screen.AddVocabulary.route) {
@@ -74,7 +70,6 @@ fun AppNavGraph() {
 				navController = navController,
 				selected = BottomNavItem.Vocabulary,
 				onBottomItemSelected = { item -> navigateToBottomTab(navController, item) },
-				onSave = { navController.navigate(Screen.VocabularySetList.route) }
 			)
 		}
 		composable(Screen.VocabularySetDetail.route) {
@@ -93,21 +88,17 @@ fun AppNavGraph() {
 		}
 		composable(Screen.FlashcardLearning.route) {
 			FlashcardLearningScreen(
-				navController = navController,
-				selected = BottomNavItem.Notification,
-				onBottomItemSelected = { item -> navigateToBottomTab(navController, item) }
+				navController = navController
 			)
 		}
 		composable(Screen.FlashcardResult.route) {
 			FlashcardResultScreen(
-				navController = navController,
-				onContinue = { navController.navigate(Screen.FlashcardLearning.route) }
+				navController = navController
 			)
 		}
 		composable(Screen.NewWordsPreview.route) {
 			NewWordsPreviewScreen(
 				navController = navController,
-				onStart = { navController.navigate(Screen.FlashcardLearning.route) }
 			)
 		}
 		composable(Screen.Profile.route) {
@@ -123,6 +114,15 @@ fun AppNavGraph() {
 				selected = BottomNavItem.Notification,
 				onBottomItemSelected = { item -> navigateToBottomTab(navController, item) }
 			)
+		}
+		composable(Screen.ReviewVocabulary.route) {
+			ReviewVocabularyScreen(
+				navController = navController
+			)
+		}
+
+		composable(Screen.EditProfileScreen.route) {
+			EditProfileScreen(navController)
 		}
 	}
 }

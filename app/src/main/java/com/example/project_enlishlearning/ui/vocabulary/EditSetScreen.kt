@@ -22,11 +22,8 @@ fun EditVocabularySetScreen(
     navController: NavController,
     selected: BottomNavItem = BottomNavItem.Vocabulary,
     onBottomItemSelected: (BottomNavItem) -> Unit = {},
-    setId: String = "",
-    onSave: () -> Unit = {}
+    setId: String = ""
 ) {
-
-    // 🔥 mock data (sau này replace bằng Room/ViewModel)
     var setName by remember {
         mutableStateOf("IELTS Academic Vocabulary")
     }
@@ -138,8 +135,6 @@ fun EditVocabularySetScreen(
                             PrimaryButton(
                                 text = "Save Changes",
                                 onClick = {
-                                    // TODO: update Room DB
-                                    onSave()
                                     navController.popBackStack()
                                 },
                                 modifier = Modifier.fillMaxWidth()

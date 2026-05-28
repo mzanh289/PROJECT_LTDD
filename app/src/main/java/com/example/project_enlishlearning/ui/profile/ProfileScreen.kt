@@ -24,6 +24,8 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -45,6 +47,9 @@ import com.example.project_enlishlearning.ui.theme.AppDimens
 import com.example.project_enlishlearning.ui.theme.ProjectEnlishLearningTheme
 import com.example.project_enlishlearning.ui.theme.Secondary
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.IconButton
+import com.example.project_enlishlearning.navigation.Screen
 
 @Composable
 fun ProfileScreen(
@@ -68,7 +73,19 @@ fun ProfileScreen(
 				title = "Profile",
 				subtitle = "Track your learning goals and progress.",
 				navigationIcon = Icons.AutoMirrored.Filled.ArrowBack,
-				onNavigationClick = { navController.popBackStack() }
+				onNavigationClick = { navController.popBackStack() },
+				actions = {
+					IconButton(
+						onClick = {
+							navController.navigate(Screen.EditProfileScreen.route)
+						}
+					) {
+						Icon(
+							imageVector = Icons.Default.Edit,
+							contentDescription = "Edit Profile"
+						)
+					}
+				}
 			)
 		},
 		bottomBar = {
@@ -117,6 +134,25 @@ fun ProfileScreen(
 					AppSectionHeader(title = "Achievements")
 					Spacer(modifier = Modifier.height(12.dp))
 					AchievementCard()
+				}
+
+				item {
+					Spacer(modifier = Modifier.height(8.dp))
+					Button(
+						onClick = {
+							navController.navigate(Screen.Login.route)
+						},
+						modifier = Modifier.fillMaxWidth(),
+						shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+						colors = ButtonDefaults.buttonColors(
+							containerColor = MaterialTheme.colorScheme.error
+						)
+					) {
+						Text(
+							text = "Log Out",
+							fontWeight = FontWeight.Bold
+						)
+					}
 				}
 			}
 		}

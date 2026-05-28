@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -30,6 +31,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.project_enlishlearning.navigation.Screen
 import com.example.project_enlishlearning.ui.components.AppCard
 import com.example.project_enlishlearning.ui.components.AppGradientBackground
 import com.example.project_enlishlearning.ui.components.AppToolbar
@@ -43,9 +45,7 @@ import com.example.project_enlishlearning.ui.theme.Secondary
 
 @Composable
 fun FlashcardResultScreen(
-    navController: NavController,
-	onContinue: () -> Unit = {},
-	onReviewHard: () -> Unit = {}
+    navController: NavController
 ) {
 	Scaffold(
 		topBar = {
@@ -151,16 +151,20 @@ fun FlashcardResultScreen(
 
 				item {
 					PrimaryButton(
-						text = "Continue Learning",
-						onClick = onContinue,
+						text = "Review Difficult Words",
+						onClick = {
+							navController.navigate(Screen.ReviewVocabulary.route)
+						},
 						modifier = Modifier.fillMaxWidth()
 					)
 				}
 
 				item {
 					SecondaryButton(
-						text = "Review Difficult Words",
-						onClick = onReviewHard,
+						text = "Continue Learning",
+						onClick = {
+							navController.navigate(Screen.VocabularySetList.route)
+						},
 						modifier = Modifier.fillMaxWidth()
 					)
 				}
@@ -170,31 +174,26 @@ fun FlashcardResultScreen(
 }
 
 @Composable
-private fun ScoreBadge() {
+private fun ScoreBadge(progress: Float = 0.92f) {
 
 	Box(
 		modifier = Modifier.fillMaxSize(),
 		contentAlignment = Alignment.Center
 	) {
 
-		Box(
-			modifier = Modifier
-				.size(120.dp)
-				.background(
-					brush = Brush.linearGradient(
-						colors = listOf(
-							Color(0xFF4CAF50),
-							Color(0xFF81C784)
-						)
-					),
-					shape = CircleShape
-				),
-			contentAlignment = Alignment.Center
-		) {
+		Box(contentAlignment = Alignment.Center) {
+
+			CircularProgressIndicator(
+				progress = { progress },
+				modifier = Modifier.size(120.dp),
+				strokeWidth = 10.dp,
+				color = Color(0xFF4CAF50),
+				trackColor = Color(0xFF81C784).copy(alpha = 0.3f)
+			)
 
 			Text(
-				text = "92%",
-				color = Color.White,
+				text = "${(progress * 100).toInt()}%",
+				color = Color.Black,
 				style = MaterialTheme.typography.displaySmall
 			)
 		}

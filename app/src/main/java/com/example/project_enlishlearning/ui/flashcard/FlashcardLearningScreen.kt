@@ -45,6 +45,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.project_enlishlearning.navigation.Screen
 import com.example.project_enlishlearning.ui.components.AppCard
 import com.example.project_enlishlearning.ui.components.AppGradientBackground
 import com.example.project_enlishlearning.ui.components.AppSectionHeader
@@ -61,9 +62,7 @@ import com.example.project_enlishlearning.ui.theme.Warning
 
 @Composable
 fun FlashcardLearningScreen(
-    navController: NavController,
-    selected: BottomNavItem = BottomNavItem.Flashcards,
-    onBottomItemSelected: (BottomNavItem) -> Unit = {}
+    navController: NavController
 ) {
     var flipped by remember { mutableStateOf(false) }
     val rotation by animateFloatAsState(
@@ -86,12 +85,6 @@ fun FlashcardLearningScreen(
                 navigationIcon = Icons.AutoMirrored.Filled.ArrowBack,
                 onNavigationClick = { navController.popBackStack() }
             )
-        },
-        bottomBar = {
-            BottomNavigationBar(
-                selected = selected,
-                onItemSelected = onBottomItemSelected
-            )
         }
     ) { innerPadding ->
         AppGradientBackground(
@@ -109,39 +102,6 @@ fun FlashcardLearningScreen(
                 ),
                 verticalArrangement = Arrangement.spacedBy(18.dp)
             ) {
-                item {
-                    AppCard(modifier = Modifier.fillMaxWidth()) {
-                        Column(modifier = Modifier.padding(AppDimens.CardPadding)) {
-                            Text(
-                                text = "Daily Learning Plan",
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Row(
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                DailyPlanItem(title = "New Words", value = "30")
-                                DailyPlanItem(title = "Need Review", value = "52")
-                            }
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Text(
-                                text = "$studiedWords / $dailyGoal completed",
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            LinearProgressIndicator(
-                                progress = { studiedWords / dailyGoal.toFloat() },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(8.dp),
-                                color = MaterialTheme.colorScheme.primary,
-                                trackColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
-                            )
-                        }
-                    }
-                }
-
                 item {
                     AppCard(
                         modifier = Modifier
@@ -217,21 +177,40 @@ fun FlashcardLearningScreen(
                 }
 
                 item {
-                    AppCard(modifier = Modifier.fillMaxWidth()) {
-                        Column(modifier = Modifier.padding(AppDimens.CardPadding)) {
-                            Text(
-                                text = "SM-2 Result",
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Row(
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Sm2Info(title = "Next Review", value = "Tomorrow")
-                                Sm2Info(title = "Ease Factor", value = "2.5")
-                            }
-                        }
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Button(
+                        onClick = {
+                            navController.navigate(Screen.FlashcardLearning.route)
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.secondary
+                        )
+                    ) {
+                        Text(
+                            text = "Next Word",
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Button(
+                        onClick = {
+                            navController.navigate(Screen.FlashcardResult.route)
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Text(
+                            text = "Finish Session",
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
             }

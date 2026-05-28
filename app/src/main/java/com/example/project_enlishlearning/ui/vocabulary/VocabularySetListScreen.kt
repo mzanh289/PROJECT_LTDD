@@ -75,8 +75,7 @@ data class VocabularySet(
 fun VocabularySetListScreen(
     navController: NavController,
     selected: BottomNavItem = BottomNavItem.Vocabulary,
-    onBottomItemSelected: (BottomNavItem) -> Unit = {},
-    onAddSet: () -> Unit = {}
+    onBottomItemSelected: (BottomNavItem) -> Unit = {}
 ) {
     var search by remember { mutableStateOf("") }
 
@@ -130,7 +129,9 @@ fun VocabularySetListScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = onAddSet,
+                onClick = {
+                    navController.navigate(Screen.CreateSet.route)
+                },
                 containerColor = MaterialTheme.colorScheme.primary
             ) {
                 Icon(
@@ -178,10 +179,7 @@ fun VocabularySetListScreen(
 @Composable
 private fun VocabularySetCard(
     item: VocabularySet,
-    navController: NavController,
-    onStart: () -> Unit = { navController.navigate(Screen.AddVocabulary.route)},
-    onViewSet: () -> Unit = { navController.navigate(Screen.VocabularySetDetail.route)},
-    onEditSet: () -> Unit = { navController.navigate(Screen.EditVocabularySet.route)}
+    navController: NavController
 ) {
     AppCard(
         modifier = Modifier
@@ -241,12 +239,16 @@ private fun VocabularySetCard(
                     ) {
                         DropdownMenuItem(
                             text = { Text("View set") },
-                            onClick = onViewSet
+                            onClick = {
+                                navController.navigate(Screen.VocabularySetDetail.route)
+                            }
                         )
 
                         DropdownMenuItem(
                             text = { Text("Edit Set") },
-                            onClick = onEditSet
+                            onClick = {
+                                navController.navigate(Screen.EditVocabularySet.route)
+                            }
                         )
 
                         DropdownMenuItem(
@@ -309,8 +311,10 @@ private fun VocabularySetCard(
             Spacer(modifier = Modifier.height(16.dp))
 
             PrimaryButton(
-                text = "Start Flashcard",
-                onClick = onStart,
+                text = "Start Learning",
+                onClick = {
+                    navController.navigate(Screen.NewWordsPreview.route)
+                },
                 modifier = Modifier.fillMaxWidth()
             )
         }

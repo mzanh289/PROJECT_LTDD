@@ -4,13 +4,17 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -32,6 +36,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.project_enlishlearning.navigation.Screen
 import com.example.project_enlishlearning.ui.components.AppCard
 import com.example.project_enlishlearning.ui.components.AppGradientBackground
 import com.example.project_enlishlearning.ui.components.AppToolbar
@@ -49,7 +54,6 @@ data class FlashcardWord(
 @Composable
 fun NewWordsPreviewScreen(
     navController: NavController,
-    onStart: () -> Unit = {}
 ) {
     val words = remember {
         listOf(
@@ -75,6 +79,7 @@ fun NewWordsPreviewScreen(
     }
 
     Scaffold(
+        contentWindowInsets = WindowInsets.systemBars,
         topBar = {
             AppToolbar(
                 title = "Today's New Words",
@@ -87,10 +92,13 @@ fun NewWordsPreviewScreen(
             Surface(tonalElevation = 2.dp) {
                 PrimaryButton(
                     text = "Start Flashcard Session",
-                    onClick = onStart,
+                    onClick = {
+                        navController.navigate(Screen.FlashcardLearning.route)
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(AppDimens.ScreenPadding)
+                        .navigationBarsPadding()
                 )
             }
         }
@@ -102,11 +110,11 @@ fun NewWordsPreviewScreen(
         ) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                contentPadding = PaddingValues(
                     start = AppDimens.ScreenPadding,
                     end = AppDimens.ScreenPadding,
                     top = 12.dp,
-                    bottom = AppDimens.BottomBarPadding
+                    bottom = innerPadding.calculateBottomPadding() + 16.dp
                 ),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {

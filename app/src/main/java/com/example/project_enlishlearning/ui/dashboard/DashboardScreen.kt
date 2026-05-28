@@ -65,7 +65,7 @@ fun DashboardScreen(
     Scaffold(
         topBar = {
             AppToolbar(
-                title = "Learning Progress",
+                title = "Dashboard",
                 subtitle = "Track your English learning performance.",
                 navigationIcon = Icons.AutoMirrored.Filled.ArrowBack,
                 onNavigationClick = { navController.popBackStack() }
@@ -109,28 +109,14 @@ fun DashboardScreen(
                             iconTint = Accent,
                             modifier = Modifier.weight(1f)
                         )
+                        DashboardMetricCard(
+                            title = "Accuracy",
+                            value = "92%",
+                            icon = Icons.AutoMirrored.Filled.ShowChart,
+                            iconTint = Secondary,
+                            modifier = Modifier.weight(1f)
+                        )
                     }
-                }
-
-                item {
-                    DashboardMetricCard(
-                        title = "Accuracy",
-                        value = "92%",
-                        icon = Icons.AutoMirrored.Filled.ShowChart,
-                        iconTint = Secondary,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-
-                item {
-                    AppSectionHeader(title = "Learning Analytics")
-                }
-
-                items(listOf(
-                    Pair("Daily Activity", "Your learning consistency this week"),
-                    Pair("Retention Rate", "Vocabulary memory performance")
-                )) { item ->
-                    AnalyticsCard(title = item.first, subtitle = item.second)
                 }
 
                 item {
@@ -142,37 +128,14 @@ fun DashboardScreen(
                 }
 
                 item {
-                    AppSectionHeader(title = "Notification Settings")
+                    AppSectionHeader(title = "Learning Analytics")
                 }
 
-                item {
-                    NotificationToggleItem(
-                        icon = Icons.Default.Notifications,
-                        title = "Daily Learning Reminder",
-                        subtitle = "Get reminded to study every day",
-                        checked = dailyReminder,
-                        onCheckedChange = { dailyReminder = it }
-                    )
-                }
-
-                item {
-                    NotificationToggleItem(
-                        icon = Icons.Default.Timer,
-                        title = "Review Reminder",
-                        subtitle = "Reminder for vocabulary review schedule",
-                        checked = reviewReminder,
-                        onCheckedChange = { reviewReminder = it }
-                    )
-                }
-
-                item {
-                    NotificationToggleItem(
-                        icon = Icons.Default.Email,
-                        title = "Email Notifications",
-                        subtitle = "Receive progress and lesson updates",
-                        checked = emailNotification,
-                        onCheckedChange = { emailNotification = it }
-                    )
+                items(listOf(
+                    Pair("Daily Activity", "Your learning consistency this week"),
+                    Pair("Retention Rate", "Vocabulary memory performance")
+                )) { item ->
+                    AnalyticsCard(title = item.first, subtitle = item.second)
                 }
             }
         }

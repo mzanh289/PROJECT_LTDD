@@ -25,6 +25,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.project_enlishlearning.navigation.Screen
 import com.example.project_enlishlearning.ui.components.AppCard
 import com.example.project_enlishlearning.ui.components.AppGradientBackground
 import com.example.project_enlishlearning.ui.components.AppTextField
@@ -39,8 +40,7 @@ import com.example.project_enlishlearning.ui.theme.ProjectEnlishLearningTheme
 fun AddVocabularyScreen(
     navController: NavController,
     selected: BottomNavItem = BottomNavItem.Vocabulary,
-    onBottomItemSelected: (BottomNavItem) -> Unit = {},
-    onSave: () -> Unit = {}
+    onBottomItemSelected: (BottomNavItem) -> Unit = {}
 ) {
     var word by remember { mutableStateOf("") }
     var pronunciation by remember { mutableStateOf("") }
@@ -150,7 +150,9 @@ fun AddVocabularyScreen(
                             Spacer(modifier = Modifier.height(18.dp))
                             PrimaryButton(
                                 text = "Save Vocabulary",
-                                onClick = onSave,
+                                onClick = {
+                                    navController.navigate(Screen.VocabularySetDetail.route)
+                                },
                                 modifier = Modifier.fillMaxWidth()
                             )
                         }

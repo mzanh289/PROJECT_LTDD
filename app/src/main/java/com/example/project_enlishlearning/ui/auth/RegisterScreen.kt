@@ -33,6 +33,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.project_enlishlearning.navigation.Screen
 import com.example.project_enlishlearning.ui.components.AppCard
 import com.example.project_enlishlearning.ui.components.AppGradientBackground
 import com.example.project_enlishlearning.ui.components.AppPasswordField
@@ -47,9 +48,7 @@ import com.example.project_enlishlearning.ui.theme.ProjectEnlishLearningTheme
 @Composable
 fun RegisterScreen(
     navController: NavController,
-    onCreateAccount: () -> Unit = {},
-    onGoogle: () -> Unit = {},
-    onSignIn: () -> Unit = {}
+    onGoogle: () -> Unit = {}
 ) {
     var fullName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
@@ -159,7 +158,9 @@ fun RegisterScreen(
 
                         PrimaryButton(
                             text = "Create Account",
-                            onClick = onCreateAccount,
+                            onClick = {
+                                navController.navigate(Screen.Login.route)
+                            },
                             modifier = Modifier.fillMaxWidth()
                         )
 
@@ -198,7 +199,7 @@ fun RegisterScreen(
                         text = "Sign In",
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.clickable { onSignIn() }
+                        modifier = Modifier.clickable { navController.navigate(Screen.Login.route) }
                     )
                 }
 
