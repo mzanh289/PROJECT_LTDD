@@ -117,6 +117,10 @@ fun ForgotPasswordScreen(
 
                                         message =
                                             "Reset email sent successfully"
+
+                                        navController.navigate("login") {
+                                            popUpTo("login") { inclusive = true }
+                                        }
                                     }
                                     .addOnFailureListener {
 
