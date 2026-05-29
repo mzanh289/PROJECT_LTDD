@@ -5,6 +5,8 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.project_enlishlearning.ui.auth.EmailVerificationScreen
+import com.example.project_enlishlearning.ui.auth.ForgotPasswordScreen
 import com.example.project_enlishlearning.ui.auth.LoginScreen
 import com.example.project_enlishlearning.ui.auth.RegisterScreen
 import com.example.project_enlishlearning.ui.components.BottomNavItem
@@ -36,7 +38,12 @@ fun AppNavGraph() {
 		}
 		composable(Screen.Login.route) {
 			LoginScreen(
-				navController = navController
+				navController = navController,
+				onForgotPassword = {
+					navController.navigate(
+						Screen.ForgotPassword.route
+					)
+				}
 			)
 		}
 		composable(Screen.Register.route) {
@@ -123,6 +130,14 @@ fun AppNavGraph() {
 
 		composable(Screen.EditProfileScreen.route) {
 			EditProfileScreen(navController)
+		}
+
+		composable(Screen.ForgotPassword.route) {
+			ForgotPasswordScreen(navController)
+		}
+
+		composable(Screen.EmailVerification.route) {
+			EmailVerificationScreen(navController)
 		}
 	}
 }

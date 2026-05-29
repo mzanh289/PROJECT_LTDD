@@ -33,6 +33,7 @@ class AuthViewModel : ViewModel() {
                 password
             )
                 .onSuccess {
+                    repository.sendEmailVerification()
                     onSuccess()
                 }
                 .onFailure {

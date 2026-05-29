@@ -65,6 +65,13 @@ fun LoginScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+    var validationError by remember {
+        mutableStateOf("")
+    }
+
+    var successMessage by remember {
+        mutableStateOf("")
+    }
 
     val context = LocalContext.current
 
@@ -204,17 +211,41 @@ fun LoginScreen(
                             text = if (viewModel.loading) "Loading..." else "Sign In",
                             onClick = {
 
-                                if (
-                                    email.isBlank() ||
-                                    password.isBlank()
-                                ) {
-                                    return@PrimaryButton
+                                validationError = ""
+                                successMessage = ""
+
+                                when {
+
+                                    email.isBlank() -> {
+                                        validationError = "Email cannot be empty"
+                                        return@PrimaryButton
+                                    }
+
+                                    !android.util.Patterns.EMAIL_ADDRESS
+                                        .matcher(email)
+                                        .matches() -> {
+
+                                        validationError = "Invalid email format"
+                                        return@PrimaryButton
+                                    }
+
+                                    password.isBlank() -> {
+                                        validationError = "Password cannot be empty"
+                                        return@PrimaryButton
+                                    }
+
+                                    password.length < 6 -> {
+                                        validationError = "Password must be at least 6 characters"
+                                        return@PrimaryButton
+                                    }
                                 }
 
                                 viewModel.login(
                                     email = email,
                                     password = password
                                 ) {
+
+                                    successMessage = "Login successful"
 
                                     navController.navigate(
                                         Screen.Dashboard.route
@@ -227,6 +258,16 @@ fun LoginScreen(
                             },
                             modifier = Modifier.fillMaxWidth()
                         )
+
+                        if (validationError.isNotEmpty()) {
+
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            Text(
+                                text = validationError,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
 
                         if (viewModel.error.isNotEmpty()) {
 

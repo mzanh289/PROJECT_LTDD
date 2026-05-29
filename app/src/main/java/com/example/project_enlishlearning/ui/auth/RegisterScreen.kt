@@ -62,6 +62,13 @@ fun RegisterScreen(
     var passwordVisible by remember { mutableStateOf(false) }
     var confirmVisible by remember { mutableStateOf(false) }
     var acceptedTerms by remember { mutableStateOf(false) }
+    var validationError by remember {
+        mutableStateOf("")
+    }
+
+    var successMessage by remember {
+        mutableStateOf("")
+    }
     val loading = authViewModel.loading
     val error = authViewModel.error
 
@@ -167,18 +174,44 @@ fun RegisterScreen(
                             text = if (loading) "Loading..." else "Create Account",
                             onClick = {
 
+                                validationError = ""
+                                successMessage = ""
+
                                 when {
 
-                                    fullName.isBlank() ||
-                                            email.isBlank() ||
-                                            password.isBlank() ||
-                                            confirmPassword.isBlank() -> {
+                                    fullName.isBlank() -> {
+                                        validationError = "Full name cannot be empty"
+                                    }
+
+                                    email.isBlank() -> {
+                                        validationError = "Email cannot be empty"
+                                    }
+
+                                    !android.util.Patterns.EMAIL_ADDRESS
+                                        .matcher(email)
+                                        .matches() -> {
+
+                                        validationError = "Invalid email format"
+                                    }
+
+                                    password.isBlank() -> {
+                                        validationError = "Password cannot be empty"
+                                    }
+
+                                    password.length < 6 -> {
+                                        validationError = "Password must be at least 6 characters"
+                                    }
+
+                                    confirmPassword.isBlank() -> {
+                                        validationError = "Please confirm password"
                                     }
 
                                     password != confirmPassword -> {
+                                        validationError = "Passwords do not match"
                                     }
 
                                     !acceptedTerms -> {
+                                        validationError = "Please accept Terms & Privacy Policy"
                                     }
 
                                     else -> {
@@ -187,8 +220,10 @@ fun RegisterScreen(
                                             email = email,
                                             password = password
                                         ) {
+                                            successMessage =
+                                                "Account created successfully. Verification email sent."
 
-                                            navController.navigate(Screen.Login.route) {
+                                            navController.navigate(Screen.EmailVerification.route) {
                                                 popUpTo(Screen.Register.route) {
                                                     inclusive = true
                                                 }
@@ -199,6 +234,26 @@ fun RegisterScreen(
                             },
                             modifier = Modifier.fillMaxWidth()
                         )
+
+                        if (validationError.isNotEmpty()) {
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            Text(
+                                text = validationError,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
+
+                        if (successMessage.isNotEmpty()) {
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            Text(
+                                text = successMessage,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
 
                         if (error.isNotEmpty()) {
 

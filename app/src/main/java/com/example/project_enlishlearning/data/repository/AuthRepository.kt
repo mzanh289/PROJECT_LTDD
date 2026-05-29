@@ -1,7 +1,9 @@
 package com.example.project_enlishlearning.data.repository
 
 import com.example.project_enlishlearning.utils.FirebaseManager
+import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.auth
 import kotlinx.coroutines.tasks.await
 
 class AuthRepository {
@@ -58,5 +60,10 @@ class AuthRepository {
 
     fun currentUser(): FirebaseUser? {
         return auth.currentUser
+    }
+
+    fun sendEmailVerification() {
+        Firebase.auth.currentUser
+            ?.sendEmailVerification()
     }
 }
