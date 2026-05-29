@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -35,7 +34,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -61,101 +59,54 @@ import com.example.project_enlishlearning.ui.theme.ProjectEnlishLearningTheme
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import com.example.project_enlishlearning.navigation.Screen
-
-data class VocabularySet(
-    val title: String,
-    val description: String,
-    val totalWords: Int,
-    val tags: List<String>,
-    val progress: Int
-)
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.project_enlishlearning.viewmodel.VocabularyViewModel
+import com.example.project_enlishlearning.data.local.entity.VocabularySetEntity
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun VocabularySetListScreen(
     navController: NavController,
     selected: BottomNavItem = BottomNavItem.Vocabulary,
-    onBottomItemSelected: (BottomNavItem) -> Unit = {}
+    onBottomItemSelected: (BottomNavItem) -> Unit = {},
+    viewModel: VocabularyViewModel = viewModel<VocabularyViewModel>()
 ) {
     var search by remember { mutableStateOf("") }
+    val vocabularySets by viewModel.vocabularySets.collectAsState()
 
-    val vocabularySets = remember {
-        mutableStateListOf(
-            VocabularySet(
-                title = "IELTS Academic Vocabulary",
-                description = "Common academic vocabulary for IELTS Reading and Writing.",
-                totalWords = 120,
-                tags = listOf("IELTS", "Academic"),
-                progress = 75
-            ),
-            VocabularySet(
-                title = "Business English",
-                description = "Vocabulary for meetings, emails, and office communication.",
-                totalWords = 85,
-                tags = listOf("Business"),
-                progress = 45
-            ),
-            VocabularySet(
-                title = "Travel Vocabulary",
-                description = "Useful words and phrases when traveling abroad.",
-                totalWords = 60,
-                tags = listOf("Travel", "Daily Life"),
-                progress = 90
-            ),
-            VocabularySet(
-                title = "TOEIC Listening",
-                description = "Important TOEIC listening keywords and collocations.",
-                totalWords = 140,
-                tags = listOf("TOEIC"),
-                progress = 30
-            )
+
+    Scaffold(topBar = {
+        AppToolbar(
+            title = "Vocabulary Sets",
+            subtitle = "Manage and review your vocabulary collections.",
+            navigationIcon = Icons.AutoMirrored.Filled.ArrowBack,
+            onNavigationClick = { navController.popBackStack() })
+    }, bottomBar = {
+        BottomNavigationBar(
+            selected = selected, onItemSelected = onBottomItemSelected
         )
-    }
-
-    Scaffold(
-        topBar = {
-            AppToolbar(
-                title = "Vocabulary Sets",
-                subtitle = "Manage and review your vocabulary collections.",
-                navigationIcon = Icons.AutoMirrored.Filled.ArrowBack,
-                onNavigationClick = { navController.popBackStack() }
+    }, floatingActionButton = {
+        FloatingActionButton(
+            onClick = {
+                navController.navigate(Screen.CreateSet.route)
+            }, containerColor = MaterialTheme.colorScheme.primary
+        ) {
+            Icon(
+                imageVector = Icons.Default.Add, contentDescription = null, tint = Color.White
             )
-        },
-        bottomBar = {
-            BottomNavigationBar(
-                selected = selected,
-                onItemSelected = onBottomItemSelected
-            )
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    navController.navigate(Screen.CreateSet.route)
-                },
-                containerColor = MaterialTheme.colorScheme.primary
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = null,
-                    tint = Color.White
-                )
-            }
         }
-    ) { innerPadding ->
+    }) { innerPadding ->
         AppGradientBackground(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
+            modifier = Modifier.fillMaxSize().padding(innerPadding)
         ) {
             LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                modifier = Modifier.fillMaxSize(), contentPadding = androidx.compose.foundation.layout.PaddingValues(
                     start = AppDimens.ScreenPadding,
                     end = AppDimens.ScreenPadding,
                     top = 12.dp,
                     bottom = AppDimens.BottomBarPadding
-                ),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                ), verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 item {
                     AppTextField(
@@ -178,24 +129,18 @@ fun VocabularySetListScreen(
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun VocabularySetCard(
-    item: VocabularySet,
-    navController: NavController
+    item: VocabularySetEntity, navController: NavController
 ) {
     AppCard(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { }
-    ) {
+        modifier = Modifier.fillMaxWidth().clickable {
+            navController.navigate("${Screen.VocabularySetDetail.route}/${item.setId}")
+        }) {
         Column(modifier = Modifier.padding(AppDimens.CardPadding)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
-                    modifier = Modifier
-                        .size(52.dp)
-                        .background(
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
-                            CircleShape
-                        ),
-                    contentAlignment = Alignment.Center
+                    modifier = Modifier.size(52.dp).background(
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.12f), CircleShape
+                        ), contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.Book,
@@ -225,11 +170,9 @@ private fun VocabularySetCard(
 
                 Box {
                     IconButton(
-                        onClick = { expanded = true }
-                    ) {
+                        onClick = { expanded = true }) {
                         Icon(
-                            imageVector = Icons.Default.MoreVert,
-                            contentDescription = null
+                            imageVector = Icons.Default.MoreVert, contentDescription = null
                         )
                     }
 
@@ -240,14 +183,18 @@ private fun VocabularySetCard(
                         DropdownMenuItem(
                             text = { Text("View set") },
                             onClick = {
-                                navController.navigate(Screen.VocabularySetDetail.route)
+                                expanded = false
+                                // Sửa lại: Truyền đúng setId vào route
+                                navController.navigate("${Screen.VocabularySetDetail.route}/${item.setId}")
                             }
                         )
 
                         DropdownMenuItem(
                             text = { Text("Edit Set") },
                             onClick = {
-                                navController.navigate(Screen.EditVocabularySet.route)
+                                expanded = false
+                                // Sửa lại: Truyền đúng setId vào route
+                                navController.navigate("${Screen.EditVocabularySet.route}/${item.setId}")
                             }
                         )
 
@@ -255,7 +202,8 @@ private fun VocabularySetCard(
                             text = { Text("Delete Set") },
                             onClick = {
                                 expanded = false
-                                // Handle delete
+                                // Ở đây bạn có thể gọi hàm xóa từ ViewModel
+                                //viewModel.deleteVocabularySet(item)
                             }
                         )
                     }
@@ -271,16 +219,6 @@ private fun VocabularySetCard(
             )
 
             Spacer(modifier = Modifier.height(12.dp))
-
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                item.tags.forEach { tag ->
-                    AppTagChip(text = tag)
-                }
-            }
-
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
@@ -293,9 +231,7 @@ private fun VocabularySetCard(
 
             LinearProgressIndicator(
                 progress = { item.progress / 100f },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(8.dp),
+                modifier = Modifier.fillMaxWidth().height(8.dp),
                 color = MaterialTheme.colorScheme.primary,
                 trackColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
             )
@@ -311,11 +247,9 @@ private fun VocabularySetCard(
             Spacer(modifier = Modifier.height(16.dp))
 
             PrimaryButton(
-                text = "Start Learning",
-                onClick = {
+                text = "Start Learning", onClick = {
                     navController.navigate(Screen.NewWordsPreview.route)
-                },
-                modifier = Modifier.fillMaxWidth()
+                }, modifier = Modifier.fillMaxWidth()
             )
         }
     }

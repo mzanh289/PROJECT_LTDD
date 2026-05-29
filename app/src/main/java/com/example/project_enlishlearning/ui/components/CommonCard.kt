@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import com.example.project_enlishlearning.ui.theme.AppDimens
 import com.example.project_enlishlearning.ui.theme.GradientEnd
 import com.example.project_enlishlearning.ui.theme.GradientStart
+import com.example.project_enlishlearning.ui.theme.OnSurface
 
 @Composable
 fun AppGradientBackground(
@@ -158,6 +159,8 @@ fun AppTextField(
 		visualTransformation = visualTransformation,
 		shape = RoundedCornerShape(AppDimens.FieldRadius),
 		colors = OutlinedTextFieldDefaults.colors(
+			focusedTextColor = OnSurface,
+			unfocusedTextColor = OnSurface,
 			focusedBorderColor = MaterialTheme.colorScheme.primary,
 			unfocusedBorderColor = MaterialTheme.colorScheme.outline,
 			focusedLabelColor = MaterialTheme.colorScheme.primary,
