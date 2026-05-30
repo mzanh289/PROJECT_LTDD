@@ -14,23 +14,18 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.project_enlishlearning.navigation.Screen
 import com.example.project_enlishlearning.ui.components.*
 import com.example.project_enlishlearning.ui.theme.AppDimens
-import com.google.firebase.Firebase
-import com.google.firebase.auth.auth
+import com.example.project_enlishlearning.viewmodel.AuthViewModel
 
 @Composable
 fun EmailVerificationScreen(
-    navController: NavController
+    navController: NavController,
+    authViewModel: AuthViewModel = viewModel()
 ) {
-
-    var message by remember {
-        mutableStateOf("")
-    }
-
-    val user = Firebase.auth.currentUser
 
     Scaffold {
 
@@ -82,12 +77,7 @@ fun EmailVerificationScreen(
 
                             onClick = {
 
-                                user?.reload()
-
-                                if (
-                                    Firebase.auth.currentUser
-                                        ?.isEmailVerified == true
-                                ) {
+                                authViewModel.checkEmailVerification {
 
                                     navController.navigate(
                                         Screen.Login.route
@@ -95,11 +85,6 @@ fun EmailVerificationScreen(
 
                                         popUpTo(0)
                                     }
-
-                                } else {
-
-                                    message =
-                                        "Email is not verified yet"
                                 }
                             },
 
@@ -113,21 +98,19 @@ fun EmailVerificationScreen(
 
                             onClick = {
 
-                                user?.sendEmailVerification()
-
-                                message =
-                                    "Verification email resent"
+                                authViewModel
+                                    .resendVerificationEmail()
                             },
 
                             modifier = Modifier.fillMaxWidth()
                         )
 
-                        if (message.isNotEmpty()) {
+                        if (authViewModel.message.isNotEmpty()) {
 
                             Spacer(modifier = Modifier.height(16.dp))
 
                             Text(
-                                text = message,
+                                text = authViewModel.message,
                                 color = MaterialTheme.colorScheme.primary
                             )
                         }

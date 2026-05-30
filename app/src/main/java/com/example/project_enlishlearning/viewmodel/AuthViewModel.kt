@@ -18,6 +18,12 @@ class AuthViewModel : ViewModel() {
     var error by mutableStateOf("")
         private set
 
+    var successMessage by mutableStateOf("")
+        private set
+
+    var message by mutableStateOf("")
+        private set
+
     fun register(
         email: String,
         password: String,
@@ -66,6 +72,112 @@ class AuthViewModel : ViewModel() {
                 }
 
             loading = false
+        }
+    }
+
+    fun resetPassword(
+        email: String,
+        onSuccess: () -> Unit
+    ) {
+
+        viewModelScope.launch {
+
+            loading = true
+
+            repository
+                .sendPasswordResetEmail(email)
+                .onSuccess {
+
+                    successMessage =
+                        "Reset email sent successfully"
+
+                    onSuccess()
+                }
+                .onFailure {
+
+                    error =
+                        it.message ?: "Something went wrong"
+                }
+
+            loading = false
+        }
+    }
+
+    fun checkEmailVerification(
+        onVerified: () -> Unit
+    ) {
+
+        viewModelScope.launch {
+
+            loading = true
+
+            repository
+                .checkEmailVerified()
+                .onSuccess { verified ->
+
+                    if (verified) {
+
+                        onVerified()
+
+                    } else {
+
+                        error =
+                            "Email is not verified yet"
+                    }
+                }
+                .onFailure {
+
+                    error =
+                        it.message ?: "Something went wrong"
+                }
+
+            loading = false
+        }
+    }
+
+    fun loginWithGoogle(
+        idToken: String,
+        onSuccess: () -> Unit
+    ) {
+
+        viewModelScope.launch {
+
+            loading = true
+
+            repository
+                .loginWithGoogle(idToken)
+                .onSuccess {
+
+                    onSuccess()
+                }
+                .onFailure {
+
+                    error =
+                        it.message
+                            ?: "Google Sign-In failed"
+                }
+
+            loading = false
+        }
+    }
+
+    fun resendVerificationEmail() {
+
+        viewModelScope.launch {
+
+            repository
+                .resendEmailVerification()
+                .onSuccess {
+
+                    message =
+                        "Verification email resent"
+                }
+                .onFailure {
+
+                    error =
+                        it.message
+                            ?: "Failed to resend email"
+                }
         }
     }
 }

@@ -23,12 +23,11 @@ import androidx.navigation.NavController
 import com.example.project_enlishlearning.ui.components.*
 import com.example.project_enlishlearning.ui.theme.AppDimens
 import com.example.project_enlishlearning.viewmodel.AuthViewModel
-import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun ForgotPasswordScreen(
     navController: NavController,
-    viewModel: AuthViewModel = viewModel()
+    authViewModel: AuthViewModel = viewModel()
 ) {
 
     var email by remember { mutableStateOf("") }
@@ -101,32 +100,26 @@ fun ForgotPasswordScreen(
                         Spacer(modifier = Modifier.height(20.dp))
 
                         PrimaryButton(
-                            text = if (viewModel.loading)
+                            text = if (authViewModel.loading)
                                 "Sending..."
                             else
                                 "Send Reset Email",
 
-                            enabled = !viewModel.loading,
+                            enabled = !authViewModel.loading,
 
                             onClick = {
 
-                                FirebaseAuth
-                                    .getInstance()
-                                    .sendPasswordResetEmail(email)
-                                    .addOnSuccessListener {
+                                authViewModel.resetPassword(
+                                    email = email
+                                ) {
 
-                                        message =
-                                            "Reset email sent successfully"
+                                    navController.navigate("login") {
 
-                                        navController.navigate("login") {
-                                            popUpTo("login") { inclusive = true }
+                                        popUpTo("login") {
+                                            inclusive = true
                                         }
                                     }
-                                    .addOnFailureListener {
-
-                                        message =
-                                            it.message ?: "Something went wrong"
-                                    }
+                                }
                             },
 
                             modifier = Modifier.fillMaxWidth()

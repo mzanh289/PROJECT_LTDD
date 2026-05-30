@@ -3,6 +3,7 @@ package com.example.project_enlishlearning.data.repository
 import com.example.project_enlishlearning.utils.FirebaseManager
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.auth
 import kotlinx.coroutines.tasks.await
 
@@ -65,5 +66,80 @@ class AuthRepository {
     fun sendEmailVerification() {
         Firebase.auth.currentUser
             ?.sendEmailVerification()
+    }
+
+    suspend fun sendPasswordResetEmail(
+        email: String
+    ): Result<Unit> {
+
+        return try {
+
+            auth.sendPasswordResetEmail(email)
+                .await()
+
+            Result.success(Unit)
+
+        } catch (e: Exception) {
+
+            Result.failure(e)
+        }
+    }
+
+    suspend fun checkEmailVerified(): Result<Boolean> {
+
+        return try {
+
+            auth.currentUser
+                ?.reload()
+                ?.await()
+
+            Result.success(
+                auth.currentUser?.isEmailVerified == true
+            )
+
+        } catch (e: Exception) {
+
+            Result.failure(e)
+        }
+    }
+
+    suspend fun loginWithGoogle(
+        idToken: String
+    ): Result<FirebaseUser?> {
+
+        return try {
+
+            val credential =
+                GoogleAuthProvider.getCredential(
+                    idToken,
+                    null
+                )
+
+            val result = auth
+                .signInWithCredential(credential)
+                .await()
+
+            Result.success(result.user)
+
+        } catch (e: Exception) {
+
+            Result.failure(e)
+        }
+    }
+
+    suspend fun resendEmailVerification(): Result<Unit> {
+
+        return try {
+
+            auth.currentUser
+                ?.sendEmailVerification()
+                ?.await()
+
+            Result.success(Unit)
+
+        } catch (e: Exception) {
+
+            Result.failure(e)
+        }
     }
 }

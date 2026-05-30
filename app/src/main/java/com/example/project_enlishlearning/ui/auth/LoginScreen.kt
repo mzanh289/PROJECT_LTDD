@@ -46,20 +46,15 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.platform.LocalContext
-import com.example.project_enlishlearning.R
 import com.example.project_enlishlearning.viewmodel.AuthViewModel
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
-import com.google.firebase.Firebase
-import com.google.firebase.auth.GoogleAuthProvider
-import com.google.firebase.auth.auth
-import androidx.compose.ui.res.stringResource
 
 @Composable
 fun LoginScreen(
     navController: NavController,
-    viewModel: AuthViewModel = viewModel(),
+    authViewModel: AuthViewModel = viewModel(),
     onForgotPassword: () -> Unit = {}
 ) {
     var email by remember { mutableStateOf("") }
@@ -93,32 +88,37 @@ fun LoginScreen(
                 ActivityResultContracts.StartActivityForResult()
         ) { result ->
 
-            val task = GoogleSignIn
-                .getSignedInAccountFromIntent(result.data)
+            val task =
+                GoogleSignIn
+                    .getSignedInAccountFromIntent(
+                        result.data
+                    )
 
             try {
 
-                val account = task.getResult(
-                    ApiException::class.java
-                )
-
-                val credential =
-                    GoogleAuthProvider.getCredential(
-                        account.idToken,
-                        null
+                val account =
+                    task.getResult(
+                        ApiException::class.java
                     )
 
-                Firebase.auth
-                    .signInWithCredential(credential)
-                    .addOnCompleteListener {
+                account.idToken?.let { token ->
 
-                        if (it.isSuccessful) {
+                    authViewModel.loginWithGoogle(
+                        token
+                    ) {
 
-                            navController.navigate(
-                                Screen.Dashboard.route
-                            )
+                        navController.navigate(
+                            Screen.Dashboard.route
+                        ) {
+
+                            popUpTo(
+                                Screen.Login.route
+                            ) {
+                                inclusive = true
+                            }
                         }
                     }
+                }
 
             } catch (e: Exception) {
 
@@ -208,7 +208,7 @@ fun LoginScreen(
                         Spacer(modifier = Modifier.height(18.dp))
 
                         PrimaryButton(
-                            text = if (viewModel.loading) "Loading..." else "Sign In",
+                            text = if (authViewModel.loading) "Loading..." else "Sign In",
                             onClick = {
 
                                 validationError = ""
@@ -240,7 +240,7 @@ fun LoginScreen(
                                     }
                                 }
 
-                                viewModel.login(
+                                authViewModel.login(
                                     email = email,
                                     password = password
                                 ) {
@@ -269,12 +269,12 @@ fun LoginScreen(
                             )
                         }
 
-                        if (viewModel.error.isNotEmpty()) {
+                        if (authViewModel.error.isNotEmpty()) {
 
                             Spacer(modifier = Modifier.height(12.dp))
 
                             Text(
-                                text = viewModel.error,
+                                text = authViewModel.error,
                                 color = MaterialTheme.colorScheme.error
                             )
                         }

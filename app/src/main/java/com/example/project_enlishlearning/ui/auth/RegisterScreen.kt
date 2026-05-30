@@ -44,8 +44,6 @@ import com.example.project_enlishlearning.ui.components.PrimaryButton
 import com.example.project_enlishlearning.ui.components.SecondaryButton
 import com.example.project_enlishlearning.ui.theme.AppDimens
 import com.example.project_enlishlearning.ui.theme.ProjectEnlishLearningTheme
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.project_enlishlearning.viewmodel.AuthViewModel
 
