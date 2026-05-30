@@ -24,7 +24,8 @@ class VocabularyViewModel(application: Application) : AndroidViewModel(applicati
     // 3. Biến chứa danh sách TỪ VỰNG CHI TIẾT của 1 bộ
     private val _wordsInSet = MutableStateFlow<List<VocabularyWordEntity>>(emptyList())
     val wordsInSet: StateFlow<List<VocabularyWordEntity>> = _wordsInSet.asStateFlow()
-
+    private val _currentEditWord = MutableStateFlow<VocabularyWordEntity?>(null)
+    val currentEditWord: StateFlow<VocabularyWordEntity?> = _currentEditWord.asStateFlow()
     init {
         // Vừa vào app là tự động gọi hàm lấy danh sách các Bộ từ vựng luôn
         loadAllSets()
@@ -50,12 +51,6 @@ class VocabularyViewModel(application: Application) : AndroidViewModel(applicati
                 description = description
             )
             dao.insertSet(newSet)
-        }
-    }
-
-    fun deleteSet(set: VocabularySetEntity) {
-        viewModelScope.launch {
-            dao.deleteSet(set)
         }
     }
 
@@ -109,9 +104,46 @@ class VocabularyViewModel(application: Application) : AndroidViewModel(applicati
             dao.updateSet(updatedSet)
         }
     }
+
     fun deleteVocabularySet(set: VocabularySetEntity) {
         viewModelScope.launch {
             dao.deleteSet(set)
         }
     }
+    fun deleteWord(word: VocabularyWordEntity) {
+        viewModelScope.launch {
+            dao.deleteWord(word)
+        }
+    }
+    fun updateWord(
+        wordId: Int,
+        setId: Int,
+        word: String,
+        pronunciation: String,
+        meaning: String,
+        example: String,
+        status: String,
+        isFavorite: Boolean
+    ) {
+        viewModelScope.launch {
+            val updatedWord = VocabularyWordEntity(
+                wordId = wordId,
+                setId = setId,
+                word = word,
+                pronunciation = pronunciation,
+                meaning = meaning,
+                example = example,
+                status = status,
+                isFavorite = isFavorite
+            )
+            dao.updateWord(updatedWord)
+        }
+    }
+    fun loadWordById(wordId: Int) {
+        viewModelScope.launch {
+            _currentEditWord.value = dao.getWordById(wordId)
+        }
+    }
 }
+
+

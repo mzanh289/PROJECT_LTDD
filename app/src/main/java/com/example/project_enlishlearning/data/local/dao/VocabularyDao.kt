@@ -51,4 +51,7 @@ interface VocabularyDao {
     // Xóa một từ vựng ra khỏi bộ
     @Delete
     suspend fun deleteWord(word: VocabularyWordEntity): Int
+
+    @Query("SELECT * FROM vocabulary_words WHERE wordId = :id")
+    suspend fun getWordById(id: Int): VocabularyWordEntity?
 }

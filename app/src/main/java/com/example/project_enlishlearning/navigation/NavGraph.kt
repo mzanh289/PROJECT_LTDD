@@ -25,6 +25,7 @@ import com.example.project_enlishlearning.ui.vocabulary.VocabularySetDetailScree
 import com.example.project_enlishlearning.ui.vocabulary.VocabularySetListScreen
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import com.example.project_enlishlearning.ui.vocabulary.EditVocabularyScreen
 
 @Composable
 fun AppNavGraph(navController: NavHostController) {
@@ -113,9 +114,16 @@ fun AppNavGraph(navController: NavHostController) {
                 navController = navController
             )
         }
-        composable(Screen.NewWordsPreview.route) {
+        composable(
+            route = "${Screen.NewWordsPreview.route}/{setId}",
+            arguments = listOf(navArgument("setId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            // Lấy setId từ đường dẫn xuống
+            val setId = backStackEntry.arguments?.getInt("setId") ?: 0
+
             NewWordsPreviewScreen(
                 navController = navController,
+                setId = setId // Đã truyền đủ tham số!
             )
         }
         composable(Screen.Profile.route) {
@@ -140,6 +148,13 @@ fun AppNavGraph(navController: NavHostController) {
 
         composable(Screen.EditProfileScreen.route) {
             EditProfileScreen(navController)
+        }
+        composable(
+            route = "edit_word/{wordId}",
+            arguments = listOf(navArgument("wordId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val wordId = backStackEntry.arguments?.getInt("wordId") ?: 0
+            EditVocabularyScreen(navController = navController, wordId = wordId)
         }
     }
 }

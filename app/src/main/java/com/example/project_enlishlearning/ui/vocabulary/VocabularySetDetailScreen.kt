@@ -105,7 +105,7 @@ fun VocabularySetDetailScreen(
                     PrimaryButton(
                         text = "Add Vocabulary",
                         onClick = {
-                            navController.navigate(Screen.AddVocabulary.route)
+                            navController.navigate("${Screen.AddVocabulary.route}/$setId")
                         },
                         leadingIcon = Icons.Default.Add,
                         modifier = Modifier.fillMaxWidth()
@@ -125,27 +125,37 @@ fun VocabularySetDetailScreen(
                             it.meaning.contains(searchQuery, ignoreCase = true)
                 }
 
+                // ... (Các code bên trên giữ nguyên)
                 if (filteredWords.isEmpty()) {
                     item {
-                        EmptyStateView(onAddVocabulary = {
-                            navController.navigate(Screen.AddVocabulary.route)
-                        })
+                        EmptyStateView(
+                            onAddVocabulary = {
+                                navController.navigate("${Screen.AddVocabulary.route}/$setId")
+                            }
+                        )
                     }
                 } else {
                     itemsIndexed(filteredWords, key = { _, item -> item.wordId }) { _, item ->
                         VocabularyItemCard(
                             word = item,
                             onFavoriteToggle = {
-                                // Gọi hàm đổi trạng thái thích trực tiếp vào DB
                                 viewModel.toggleFavorite(item)
+                            },
+                            onDeleteClick = {
+                                // Gọi hàm xóa từ vựng vừa viết ở Bước 1
+                                    viewModel.deleteWord(item)
+                            },
+                            onEditClick = {
+                                navController.navigate("edit_word/${item.wordId}")
                             }
                         )
                     }
                 }
+                // ...
+                }
             }
         }
     }
-}
 
 @Composable
 fun SetHeaderCard(set: VocabularySetEntity) {
@@ -220,8 +230,14 @@ fun VocabularySearchBar(value: String, onValueChange: (String) -> Unit) {
 @Composable
 fun VocabularyItemCard(
     word: VocabularyWordEntity,
-    onFavoriteToggle: () -> Unit
+    onFavoriteToggle: () -> Unit,
+    onDeleteClick: () -> Unit, // Thêm tham số sự kiện Xóa
+    onEditClick: () -> Unit    // Thêm tham số sự kiện Sửa
 ) {
+    // 1. Thêm biến quản lý trạng thái mở/đóng Menu và Hộp thoại xác nhận xóa
+    var expanded by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+
     AppCard(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(AppDimens.CardPadding)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -247,11 +263,34 @@ fun VocabularyItemCard(
                     )
                 }
 
-                IconButton(onClick = { }) {
-                    Icon(
-                        imageVector = Icons.Default.MoreVert,
-                        contentDescription = null
-                    )
+                // 2. Wrap IconButton trong Box và thêm DropdownMenu
+                Box {
+                    IconButton(onClick = { expanded = true }) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = null
+                        )
+                    }
+
+                    DropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Edit Word") },
+                            onClick = {
+                                expanded = false
+                                onEditClick() // Gọi sự kiện sửa
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Delete Word") },
+                            onClick = {
+                                expanded = false
+                                showDeleteDialog = true // Mở hộp thoại xác nhận xóa
+                            }
+                        )
+                    }
                 }
             }
 
@@ -274,7 +313,6 @@ fun VocabularyItemCard(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Đổi text status từ DB sang dạng Enum để hiển thị màu sắc
             val currentStatus = when (word.status) {
                 "Learning" -> VocabularyStatus.Learning
                 "Mastered" -> VocabularyStatus.Mastered
@@ -282,6 +320,30 @@ fun VocabularyItemCard(
             }
             StatusChip(status = currentStatus)
         }
+    }
+
+    // 3. Hiển thị thông báo xác nhận xóa
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("Delete vocabulary?") },
+            text = { Text("Are you sure you want to delete '${word.word}'? This cannot be undone.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteDialog = false
+                        onDeleteClick() // Gọi logic xóa thực sự xuống Database
+                    }
+                ) {
+                    Text("Delete", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }
 
