@@ -2,8 +2,6 @@ package com.example.project_enlishlearning.ui.vocabulary
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Book
@@ -12,130 +10,88 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.project_enlishlearning.ui.components.*
 import com.example.project_enlishlearning.ui.theme.AppDimens
+import com.example.project_enlishlearning.viewmodel.VocabularyViewModel
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun EditVocabularySetScreen(
     navController: NavController,
-    selected: BottomNavItem = BottomNavItem.Vocabulary,
-    onBottomItemSelected: (BottomNavItem) -> Unit = {},
-    setId: String = ""
+    setId: Int, // Chuyển từ String sang Int để khớp với DB
+    viewModel: VocabularyViewModel = viewModel()
 ) {
-    var setName by remember {
-        mutableStateOf("IELTS Academic Vocabulary")
-    }
+    // Lấy toàn bộ danh sách bộ từ vựng từ Database ra để tìm bộ cần sửa
+    val allSets by viewModel.vocabularySets.collectAsState()
+    val currentSet = allSets.find { it.setId == setId }
 
-    var description by remember {
-        mutableStateOf("Common academic vocabulary for IELTS Reading and Writing.")
-    }
+    var setName by remember { mutableStateOf("") }
+    var description by remember { mutableStateOf("") }
 
-    val tags = listOf("IELTS", "Business", "Travel", "TOEIC", "Academic", "Daily Life")
-    val selectedTags = remember {
-        mutableStateListOf("IELTS", "Academic")
+    // Khi tìm thấy dữ liệu từ DB, đổ text cũ vào ô nhập liệu tương ứng
+    LaunchedEffect(currentSet) {
+        currentSet?.let {
+            setName = it.title
+            description = it.description
+        }
     }
 
     Scaffold(
         topBar = {
             AppToolbar(
-                title = "Edit Vocabulary Set",
-                subtitle = "Update your vocabulary collection.",
+                title = "Edit Set",
+                subtitle = "Modify vocabulary set information.",
                 navigationIcon = Icons.AutoMirrored.Filled.ArrowBack,
                 onNavigationClick = { navController.popBackStack() }
             )
-        },
-        bottomBar = {
-            BottomNavigationBar(
-                selected = selected,
-                onItemSelected = onBottomItemSelected
-            )
         }
     ) { innerPadding ->
-
         AppGradientBackground(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-
             LazyColumn(
-                contentPadding = PaddingValues(
-                    start = AppDimens.ScreenPadding,
-                    end = AppDimens.ScreenPadding,
-                    top = 12.dp,
-                    bottom = AppDimens.SectionSpacing
-                ),
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(AppDimens.ScreenPadding),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-
                 item {
-
                     AppCard(modifier = Modifier.fillMaxWidth()) {
-
-                        Column(
-                            modifier = Modifier.padding(AppDimens.CardPadding)
-                        ) {
-
+                        Column(modifier = Modifier.padding(AppDimens.CardPadding)) {
                             AppTextField(
                                 value = setName,
                                 onValueChange = { setName = it },
-                                label = "Vocabulary Set Name",
+                                label = "Set Name",
                                 leadingIcon = Icons.Default.Book
                             )
-
-                            Spacer(modifier = Modifier.height(16.dp))
-
+                            Spacer(modifier = Modifier.height(14.dp))
                             AppTextField(
                                 value = description,
                                 onValueChange = { description = it },
                                 label = "Description",
                                 leadingIcon = Icons.Default.Description,
-                                minLines = 4,
+                                minLines = 3,
                                 singleLine = false
                             )
-
-                            Spacer(modifier = Modifier.height(18.dp))
-
-                            Text(
-                                text = "Tags",
-                                style = MaterialTheme.typography.titleMedium
-                            )
-
-                            Spacer(modifier = Modifier.height(12.dp))
-
-                            FlowRow(
-                                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                                verticalArrangement = Arrangement.spacedBy(10.dp)
-                            ) {
-
-                                tags.forEach { tag ->
-
-                                    FilterChip(
-                                        selected = selectedTags.contains(tag),
-                                        onClick = {
-                                            if (selectedTags.contains(tag)) {
-                                                selectedTags.remove(tag)
-                                            } else {
-                                                selectedTags.add(tag)
-                                            }
-                                        },
-                                        label = { Text(tag) },
-                                        colors = FilterChipDefaults.filterChipColors(
-                                            selectedContainerColor = MaterialTheme.colorScheme.primary,
-                                            selectedLabelColor = MaterialTheme.colorScheme.onPrimary
-                                        )
-                                    )
-                                }
-                            }
 
                             Spacer(modifier = Modifier.height(22.dp))
 
                             PrimaryButton(
                                 text = "Save Changes",
                                 onClick = {
-                                    navController.popBackStack()
+                                    if (setName.isNotBlank() && currentSet != null) {
+                                        // Gọi hàm update của ViewModel đẩy thông tin mới xuống DB
+                                        viewModel.updateVocabularySet(
+                                            setId = currentSet.setId,
+                                            title = setName,
+                                            description = description,
+                                            totalWords = currentSet.totalWords,
+                                            progress = currentSet.progress
+                                        )
+                                        navController.popBackStack() // Cập nhật xong quay lại màn hình cũ
+                                    }
                                 },
                                 modifier = Modifier.fillMaxWidth()
                             )

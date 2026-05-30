@@ -1,69 +1,42 @@
 package com.example.project_enlishlearning.ui.vocabulary
 
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.Language
-import androidx.compose.material.icons.automirrored.filled.Note
 import androidx.compose.material.icons.filled.RecordVoiceOver
-import androidx.compose.material.icons.filled.Tag
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.example.project_enlishlearning.navigation.Screen
-import com.example.project_enlishlearning.ui.components.AppCard
-import com.example.project_enlishlearning.ui.components.AppGradientBackground
-import com.example.project_enlishlearning.ui.components.AppTextField
-import com.example.project_enlishlearning.ui.components.AppToolbar
-import com.example.project_enlishlearning.ui.components.BottomNavItem
-import com.example.project_enlishlearning.ui.components.BottomNavigationBar
-import com.example.project_enlishlearning.ui.components.PrimaryButton
+import com.example.project_enlishlearning.ui.components.*
 import com.example.project_enlishlearning.ui.theme.AppDimens
 import com.example.project_enlishlearning.ui.theme.ProjectEnlishLearningTheme
+import com.example.project_enlishlearning.viewmodel.VocabularyViewModel
 
 @Composable
 fun AddVocabularyScreen(
     navController: NavController,
-    selected: BottomNavItem = BottomNavItem.Vocabulary,
-    onBottomItemSelected: (BottomNavItem) -> Unit = {}
+    setId: Int, // Bắt buộc nhận setId để biết từ này thuộc về bộ nào
+    viewModel: VocabularyViewModel = viewModel()
 ) {
     var word by remember { mutableStateOf("") }
     var pronunciation by remember { mutableStateOf("") }
     var meaning by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
     var example by remember { mutableStateOf("") }
-    var collocation by remember { mutableStateOf("") }
-    var relatedWords by remember { mutableStateOf("") }
-    var note by remember { mutableStateOf("") }
 
     Scaffold(
         topBar = {
             AppToolbar(
                 title = "Add Vocabulary",
-                subtitle = "Add detailed vocabulary information for learning.",
+                subtitle = "Add a new word to your set.",
                 navigationIcon = Icons.AutoMirrored.Filled.ArrowBack,
                 onNavigationClick = { navController.popBackStack() }
-            )
-        },
-        bottomBar = {
-            BottomNavigationBar(
-                selected = selected,
-                onItemSelected = onBottomItemSelected
             )
         }
     ) { innerPadding ->
@@ -73,30 +46,25 @@ fun AddVocabularyScreen(
                 .padding(innerPadding)
         ) {
             LazyColumn(
-                contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                    start = AppDimens.ScreenPadding,
-                    end = AppDimens.ScreenPadding,
-                    top = 12.dp,
-                    bottom = AppDimens.SectionSpacing
-                ),
-                verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(16.dp)
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(AppDimens.ScreenPadding),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 item {
                     AppCard(modifier = Modifier.fillMaxWidth()) {
-                        androidx.compose.foundation.layout.Column(
-                            modifier = Modifier.padding(AppDimens.CardPadding)
-                        ) {
+                        Column(modifier = Modifier.padding(AppDimens.CardPadding)) {
                             AppTextField(
                                 value = word,
                                 onValueChange = { word = it },
-                                label = "Word",
-                                leadingIcon = Icons.Default.Language
+                                label = "Vocabulary Word",
+                                placeholder = "e.g., Abundant"
                             )
                             Spacer(modifier = Modifier.height(14.dp))
                             AppTextField(
                                 value = pronunciation,
                                 onValueChange = { pronunciation = it },
                                 label = "Pronunciation",
+                                placeholder = "e.g., /əˈbʌn.dənt/",
                                 leadingIcon = Icons.Default.RecordVoiceOver
                             )
                             Spacer(modifier = Modifier.height(14.dp))
@@ -104,54 +72,35 @@ fun AddVocabularyScreen(
                                 value = meaning,
                                 onValueChange = { meaning = it },
                                 label = "Meaning",
+                                placeholder = "e.g., Nhiều, phong phú",
                                 leadingIcon = Icons.Default.Description
-                            )
-                            Spacer(modifier = Modifier.height(14.dp))
-                            AppTextField(
-                                value = description,
-                                onValueChange = { description = it },
-                                label = "Description (English)",
-                                leadingIcon = Icons.Default.Description,
-                                minLines = 4,
-                                singleLine = false
                             )
                             Spacer(modifier = Modifier.height(14.dp))
                             AppTextField(
                                 value = example,
                                 onValueChange = { example = it },
-                                label = "Example",
-                                leadingIcon = Icons.Default.Description,
-                                minLines = 3,
+                                label = "Example Sentence",
+                                placeholder = "e.g., Birds are abundant in the river.",
+                                minLines = 2,
                                 singleLine = false
                             )
-                            Spacer(modifier = Modifier.height(14.dp))
-                            AppTextField(
-                                value = collocation,
-                                onValueChange = { collocation = it },
-                                label = "Collocation",
-                                leadingIcon = Icons.Default.Tag
-                            )
-                            Spacer(modifier = Modifier.height(14.dp))
-                            AppTextField(
-                                value = relatedWords,
-                                onValueChange = { relatedWords = it },
-                                label = "Related Words",
-                                leadingIcon = Icons.Default.Language
-                            )
-                            Spacer(modifier = Modifier.height(14.dp))
-                            AppTextField(
-                                value = note,
-                                onValueChange = { note = it },
-                                label = "Note",
-                                leadingIcon = Icons.AutoMirrored.Filled.Note,
-                                minLines = 3,
-                                singleLine = false
-                            )
+
                             Spacer(modifier = Modifier.height(18.dp))
+
                             PrimaryButton(
                                 text = "Save Vocabulary",
                                 onClick = {
-                                    navController.navigate(Screen.VocabularySetDetail.route)
+                                    if (word.isNotBlank() && meaning.isNotBlank()) {
+                                        // Gọi ViewModel thêm từ vựng vào DB đúng setId của bộ từ vựng đó
+                                        viewModel.addWord(
+                                            setId = setId,
+                                            word = word,
+                                            pronunciation = pronunciation,
+                                            meaning = meaning,
+                                            example = example
+                                        )
+                                        navController.popBackStack() // Lưu xong quay về màn chi tiết bộ
+                                    }
                                 },
                                 modifier = Modifier.fillMaxWidth()
                             )
@@ -167,6 +116,6 @@ fun AddVocabularyScreen(
 @Composable
 fun AddVocabularyPreview() {
     ProjectEnlishLearningTheme {
-        AddVocabularyScreen(navController = rememberNavController())
+        AddVocabularyScreen(navController = rememberNavController(), setId = 1)
     }
 }
