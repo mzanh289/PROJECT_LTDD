@@ -142,4 +142,11 @@ class AuthRepository {
             Result.failure(e)
         }
     }
+    fun getCurrentUserId(): String? {
+        return auth.currentUser?.uid
+    }
+
+    fun getCurrentUserEmail(): String {
+        return auth.currentUser?.email ?: ""
+    }
 }

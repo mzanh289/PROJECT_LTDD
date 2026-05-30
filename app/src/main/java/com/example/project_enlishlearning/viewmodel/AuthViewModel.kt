@@ -180,4 +180,16 @@ class AuthViewModel : ViewModel() {
                 }
         }
     }
+    fun getCurrentUserId(): String? {
+        return repository.getCurrentUserId()
+    }
+
+    fun getCurrentUserEmail(): String {
+        return repository.getCurrentUserEmail()
+    }
+
+    fun logout(onLogout: () -> Unit) {
+        repository.logout()
+        onLogout()
+    }
 }

@@ -1,12 +1,17 @@
 package com.example.project_enlishlearning.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+
+import com.example.project_enlishlearning.data.local.database.AppDatabase
+import com.example.project_enlishlearning.data.repository.DashboardRepository
+import com.example.project_enlishlearning.data.repository.UserProfileRepository
 
 import com.example.project_enlishlearning.ui.auth.EmailVerificationScreen
 import com.example.project_enlishlearning.ui.auth.ForgotPasswordScreen
@@ -36,8 +41,41 @@ import com.example.project_enlishlearning.ui.vocabulary.EditVocabularySetScreen
 import com.example.project_enlishlearning.ui.vocabulary.VocabularySetDetailScreen
 import com.example.project_enlishlearning.ui.vocabulary.VocabularySetListScreen
 
+import com.example.project_enlishlearning.viewmodel.AuthViewModel
+import com.example.project_enlishlearning.viewmodel.DashboardViewModel
+import com.example.project_enlishlearning.viewmodel.DashboardViewModelFactory
+import com.example.project_enlishlearning.viewmodel.ProfileViewModel
+import com.example.project_enlishlearning.viewmodel.ProfileViewModelFactory
+
 @Composable
-fun AppNavGraph(navController: NavHostController) {
+fun AppNavGraph(
+    navController: NavHostController,
+    database: AppDatabase,
+    authViewModel: AuthViewModel
+) {
+    val userId = authViewModel.getCurrentUserId() ?: "local_user"
+
+    val userProfileRepository = UserProfileRepository(
+        userProfileDao = database.userProfileDao()
+    )
+
+    val profileViewModel: ProfileViewModel = viewModel(
+        factory = ProfileViewModelFactory(
+            repository = userProfileRepository,
+            userId = userId
+        )
+    )
+    val dashboardRepository = DashboardRepository(
+        vocabularyDao = database.vocabularyDao(),
+        learningProgressDao = database.learningProgressDao()
+    )
+
+    val dashboardViewModel: DashboardViewModel = viewModel(
+        factory = DashboardViewModelFactory(
+            repository = dashboardRepository,
+            userId = userId
+        )
+    )
 
     NavHost(
         navController = navController,
@@ -77,10 +115,15 @@ fun AppNavGraph(navController: NavHostController) {
         // Dashboard
         composable(Screen.Dashboard.route) {
             DashboardScreen(
-                navController = navController,
-                selected = BottomNavItem.Dashboard,
-                onBottomItemSelected = {
-                    navigateToBottomTab(navController, it)
+                viewModel = dashboardViewModel,
+                onProfileClick = {
+                    navController.navigate(Screen.Profile.route)
+                },
+                onVocabularyClick = {
+                    navController.navigate(Screen.VocabularySetList.route)
+                },
+                onFlashcardClick = {
+                    navController.navigate(Screen.FlashcardLearning.route)
                 }
             )
         }
@@ -218,17 +261,28 @@ fun AppNavGraph(navController: NavHostController) {
         // Profile
         composable(Screen.Profile.route) {
             ProfileScreen(
-                navController = navController,
-                selected = BottomNavItem.Profile,
-                onBottomItemSelected = {
-                    navigateToBottomTab(navController, it)
+                authViewModel = authViewModel,
+                profileViewModel = profileViewModel,
+                onEditProfileClick = {
+                    navController.navigate(Screen.EditProfileScreen.route)
+                },
+                onLogoutClick = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(Screen.Dashboard.route) {
+                            inclusive = true
+                        }
+                    }
                 }
             )
         }
 
         // Edit Profile
         composable(Screen.EditProfileScreen.route) {
-            EditProfileScreen(navController)
+            EditProfileScreen(
+                navController = navController,
+                authViewModel = authViewModel,
+                profileViewModel = profileViewModel
+            )
         }
 
         // Edit Vocabulary

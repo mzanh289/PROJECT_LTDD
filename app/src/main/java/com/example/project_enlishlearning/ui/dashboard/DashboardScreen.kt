@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,130 +13,147 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.LocalFireDepartment
-import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Book
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.MenuBook
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.School
-import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
-import com.example.project_enlishlearning.ui.components.AppCard
-import com.example.project_enlishlearning.ui.components.AppGradientBackground
-import com.example.project_enlishlearning.ui.components.AppSectionHeader
-import com.example.project_enlishlearning.ui.components.AppToolbar
-import com.example.project_enlishlearning.ui.components.BottomNavItem
-import com.example.project_enlishlearning.ui.components.BottomNavigationBar
-import com.example.project_enlishlearning.ui.theme.Accent
-import com.example.project_enlishlearning.ui.theme.AppDimens
-import com.example.project_enlishlearning.ui.theme.ProjectEnlishLearningTheme
-import com.example.project_enlishlearning.ui.theme.Secondary
+import com.example.project_enlishlearning.viewmodel.DashboardViewModel
 
 @Composable
 fun DashboardScreen(
-    navController: NavController,
-    selected: BottomNavItem = BottomNavItem.Dashboard,
-    onBottomItemSelected: (BottomNavItem) -> Unit = {}
+    viewModel: DashboardViewModel,
+    onProfileClick: () -> Unit,
+    onVocabularyClick: () -> Unit,
+    onFlashcardClick: () -> Unit
 ) {
-    var dailyReminder by remember { mutableStateOf(true) }
-    var reviewReminder by remember { mutableStateOf(true) }
-    var emailNotification by remember { mutableStateOf(false) }
+    val totalVocabularySets by viewModel.totalVocabularySets.collectAsState()
+    val totalVocabularyWords by viewModel.totalVocabularyWords.collectAsState()
+    val totalLearningWords by viewModel.totalLearningWords.collectAsState()
+    val newWords by viewModel.newWords.collectAsState()
+    val learningWords by viewModel.learningWords.collectAsState()
+    val reviewingWords by viewModel.reviewingWords.collectAsState()
+    val masteredWords by viewModel.masteredWords.collectAsState()
+    val reviewDueToday by viewModel.reviewDueToday.collectAsState()
 
-    Scaffold(
-        topBar = {
-            AppToolbar(
-                title = "Dashboard",
-                subtitle = "Track your English learning performance.",
-                navigationIcon = Icons.AutoMirrored.Filled.ArrowBack,
-                onNavigationClick = { navController.popBackStack() }
-            )
-        },
-        bottomBar = {
-            BottomNavigationBar(
-                selected = selected,
-                onItemSelected = onBottomItemSelected
-            )
-        }
-    ) { innerPadding ->
-        AppGradientBackground(
+    val totalProgressWords = newWords + learningWords + reviewingWords + masteredWords
+    val masteredProgress = if (totalProgressWords > 0) {
+        masteredWords.toFloat() / totalProgressWords.toFloat()
+    } else {
+        0f
+    }
+
+    Scaffold { padding ->
+
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.10f),
+                            MaterialTheme.colorScheme.background
+                        )
+                    )
+                )
+                .padding(padding)
         ) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                    start = AppDimens.ScreenPadding,
-                    end = AppDimens.ScreenPadding,
-                    top = 12.dp,
-                    bottom = AppDimens.BottomBarPadding
-                ),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                contentPadding = PaddingValues(18.dp),
+                verticalArrangement = Arrangement.spacedBy(18.dp)
             ) {
+
                 item {
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        DashboardMetricCard(
-                            title = "Words Learned",
-                            value = "1,245",
-                            icon = Icons.Default.School,
-                            iconTint = MaterialTheme.colorScheme.primary,
+                    DashboardHeader()
+                }
+
+                item {
+                    TodayReviewCard(
+                        reviewDueToday = reviewDueToday,
+                        onStartClick = onFlashcardClick
+                    )
+                }
+
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        ModernStatCard(
+                            title = "Sets",
+                            value = totalVocabularySets.toString(),
+                            icon = Icons.Default.Book,
                             modifier = Modifier.weight(1f)
                         )
-                        DashboardMetricCard(
-                            title = "Streak",
-                            value = "15 Days",
-                            icon = Icons.Default.LocalFireDepartment,
-                            iconTint = Accent,
-                            modifier = Modifier.weight(1f)
-                        )
-                        DashboardMetricCard(
-                            title = "Accuracy",
-                            value = "92%",
-                            icon = Icons.AutoMirrored.Filled.ShowChart,
-                            iconTint = Secondary,
+
+                        ModernStatCard(
+                            title = "Words",
+                            value = totalVocabularyWords.toString(),
+                            icon = Icons.Default.MenuBook,
                             modifier = Modifier.weight(1f)
                         )
                     }
                 }
 
                 item {
-                    AppSectionHeader(title = "Current English Level")
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        ModernStatCard(
+                            title = "Learning",
+                            value = totalLearningWords.toString(),
+                            icon = Icons.Default.School,
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        ModernStatCard(
+                            title = "Mastered",
+                            value = masteredWords.toString(),
+                            icon = Icons.Default.CheckCircle,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
                 }
 
                 item {
-                    LevelCard()
+                    ProgressOverviewCard(
+                        newWords = newWords,
+                        learningWords = learningWords,
+                        reviewingWords = reviewingWords,
+                        masteredWords = masteredWords,
+                        masteredProgress = masteredProgress
+                    )
                 }
 
                 item {
-                    AppSectionHeader(title = "Learning Analytics")
-                }
-
-                items(listOf(
-                    Pair("Daily Activity", "Your learning consistency this week"),
-                    Pair("Retention Rate", "Vocabulary memory performance")
-                )) { item ->
-                    AnalyticsCard(title = item.first, subtitle = item.second)
+                    QuickActionsCard(
+                        onFlashcardClick = onFlashcardClick,
+                        onVocabularyClick = onVocabularyClick,
+                        onProfileClick = onProfileClick
+                    )
                 }
             }
         }
@@ -143,28 +161,128 @@ fun DashboardScreen(
 }
 
 @Composable
-fun ProgressDashboardScreen() {
-    DashboardScreen(navController = rememberNavController())
+private fun DashboardHeader() {
+    Column {
+        Text(
+            text = "Dashboard",
+            style = MaterialTheme.typography.headlineLarge
+        )
+
+        Spacer(modifier = Modifier.height(6.dp))
+
+        Text(
+            text = "Ready to improve your English today?",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
 }
 
 @Composable
-private fun DashboardMetricCard(
+private fun TodayReviewCard(
+    reviewDueToday: Int,
+    onStartClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(28.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primary
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(22.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Timer,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onPrimary
+                )
+
+                Spacer(modifier = Modifier.width(10.dp))
+
+                Text(
+                    text = "Today's Review",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            Text(
+                text = "$reviewDueToday words due",
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.onPrimary
+            )
+
+            Spacer(modifier = Modifier.height(18.dp))
+
+            Button(
+                onClick = onStartClick,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.onPrimary,
+                    contentColor = MaterialTheme.colorScheme.primary
+                ),
+                shape = RoundedCornerShape(18.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.PlayArrow,
+                    contentDescription = null
+                )
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Text("Start Learning")
+            }
+        }
+    }
+}
+
+@Composable
+private fun ModernStatCard(
     title: String,
     value: String,
     icon: ImageVector,
-    iconTint: Color,
     modifier: Modifier = Modifier
 ) {
-    AppCard(modifier = modifier) {
-        Column(modifier = Modifier.padding(AppDimens.CardPadding)) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = iconTint
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(18.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .background(
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                        shape = RoundedCornerShape(16.dp)
+                    )
+                    .padding(10.dp)
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            Text(
+                text = value,
+                style = MaterialTheme.typography.headlineSmall
             )
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(text = value, style = MaterialTheme.typography.titleLarge)
-            Spacer(modifier = Modifier.height(4.dp))
+
             Text(
                 text = title,
                 style = MaterialTheme.typography.bodyMedium,
@@ -175,110 +293,133 @@ private fun DashboardMetricCard(
 }
 
 @Composable
-private fun AnalyticsCard(
-    title: String,
-    subtitle: String
+private fun ProgressOverviewCard(
+    newWords: Int,
+    learningWords: Int,
+    reviewingWords: Int,
+    masteredWords: Int,
+    masteredProgress: Float
 ) {
-    AppCard(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(AppDimens.CardPadding)) {
-            Text(text = title, style = MaterialTheme.typography.titleMedium)
-            Spacer(modifier = Modifier.height(4.dp))
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(28.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
             Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                text = "Vocabulary Progress",
+                style = MaterialTheme.typography.titleLarge
             )
-            Spacer(modifier = Modifier.height(16.dp))
-            Row(
+
+            LinearProgressIndicator(
+                progress = { masteredProgress },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(110.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Bottom
+                    .height(10.dp),
+                trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                listOf(36, 72, 54, 90, 62, 102, 84).forEach { height ->
-                    Box(
-                        modifier = Modifier
-                            .width(22.dp)
-                            .height(height.dp)
-                            .background(
-                                color = MaterialTheme.colorScheme.primary,
-                                shape = RoundedCornerShape(10.dp)
-                            )
-                    )
-                }
+                ProgressText("New", newWords)
+                ProgressText("Learning", learningWords)
+                ProgressText("Reviewing", reviewingWords)
+                ProgressText("Mastered", masteredWords)
             }
         }
     }
 }
 
 @Composable
-private fun LevelCard() {
-    AppCard(modifier = Modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier
-                .padding(AppDimens.CardPadding)
-                .fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "Intermediate",
-                style = MaterialTheme.typography.displaySmall,
-                color = MaterialTheme.colorScheme.primary
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "You can communicate confidently in daily situations.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
-}
-
-@Composable
-private fun NotificationToggleItem(
-    icon: ImageVector,
+private fun ProgressText(
     title: String,
-    subtitle: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
+    value: Int
 ) {
-    AppCard(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(18.dp),
-            verticalAlignment = Alignment.CenterVertically
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = value.toString(),
+            style = MaterialTheme.typography.titleMedium
+        )
+
+        Text(
+            text = title,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+@Composable
+private fun QuickActionsCard(
+    onFlashcardClick: () -> Unit,
+    onVocabularyClick: () -> Unit,
+    onProfileClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(28.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary
+            Text(
+                text = "Quick Actions",
+                style = MaterialTheme.typography.titleLarge
             )
-            Spacer(modifier = Modifier.width(14.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(text = title, style = MaterialTheme.typography.titleMedium)
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+
+            Button(
+                onClick = onFlashcardClick,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(18.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.PlayArrow,
+                    contentDescription = null
                 )
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Text("Start Flashcard")
             }
-            Switch(
-                checked = checked,
-                onCheckedChange = onCheckedChange
-            )
+
+            Button(
+                onClick = onVocabularyClick,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(18.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.MenuBook,
+                    contentDescription = null
+                )
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Text("Manage Vocabulary")
+            }
+
+            Button(
+                onClick = onProfileClick,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(18.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = null
+                )
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Text("Profile")
+            }
         }
     }
 }
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun ProgressDashboardPreview() {
-    ProjectEnlishLearningTheme {
-        DashboardScreen(navController = rememberNavController())
-    }
-}
-
