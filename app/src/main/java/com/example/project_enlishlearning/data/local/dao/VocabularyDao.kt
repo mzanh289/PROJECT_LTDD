@@ -54,4 +54,15 @@ interface VocabularyDao {
 
     @Query("SELECT * FROM vocabulary_words WHERE wordId = :id")
     suspend fun getWordById(id: Int): VocabularyWordEntity?
+
+    @Query("SELECT * FROM vocabulary_sets WHERE userId = :userId ORDER BY setId ASC")
+    fun getAllSetsByUserId(userId: String): Flow<List<VocabularySetEntity>>
+
+    // Tăng số lượng từ vựng lên 1
+    @Query("UPDATE vocabulary_sets SET totalWords = totalWords + 1 WHERE setId = :setId")
+    suspend fun incrementTotalWords(setId: Int)
+
+    // Giảm số lượng từ vựng đi 1 (đảm bảo không bị âm)
+    @Query("UPDATE vocabulary_sets SET totalWords = totalWords - 1 WHERE setId = :setId AND totalWords > 0")
+    suspend fun decrementTotalWords(setId: Int)
 }
