@@ -8,7 +8,7 @@ import com.example.project_enlishlearning.data.local.entity.VocabularySetEntity
 import com.example.project_enlishlearning.data.local.entity.VocabularyWordEntity
 @Database(
     entities = [VocabularySetEntity::class, VocabularyWordEntity::class],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
