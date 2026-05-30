@@ -7,6 +7,7 @@ import androidx.room.PrimaryKey
 data class VocabularySetEntity(
     @PrimaryKey(autoGenerate = true)
     val setId: Int = 0,
+    val userId: String,
     val title: String,
     val description: String,
     val totalWords: Int = 0,
