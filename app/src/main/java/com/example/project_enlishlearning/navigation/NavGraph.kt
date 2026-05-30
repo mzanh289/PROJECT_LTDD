@@ -3,276 +3,259 @@ package com.example.project_enlishlearning.navigation
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+
 import com.example.project_enlishlearning.ui.auth.EmailVerificationScreen
 import com.example.project_enlishlearning.ui.auth.ForgotPasswordScreen
 import com.example.project_enlishlearning.ui.auth.LoginScreen
 import com.example.project_enlishlearning.ui.auth.RegisterScreen
+
 import com.example.project_enlishlearning.ui.components.BottomNavItem
+
 import com.example.project_enlishlearning.ui.dashboard.DashboardScreen
+
 import com.example.project_enlishlearning.ui.flashcard.FlashcardLearningScreen
 import com.example.project_enlishlearning.ui.flashcard.FlashcardResultScreen
 import com.example.project_enlishlearning.ui.flashcard.NewWordsPreviewScreen
 import com.example.project_enlishlearning.ui.flashcard.ReviewVocabularyScreen
+
 import com.example.project_enlishlearning.ui.notification.NotificationSettingsScreen
+
 import com.example.project_enlishlearning.ui.profile.EditProfileScreen
 import com.example.project_enlishlearning.ui.profile.ProfileScreen
+
 import com.example.project_enlishlearning.ui.splash.SplashScreen
+
 import com.example.project_enlishlearning.ui.vocabulary.AddVocabularyScreen
 import com.example.project_enlishlearning.ui.vocabulary.CreateVocabularySetScreen
+import com.example.project_enlishlearning.ui.vocabulary.EditVocabularyScreen
 import com.example.project_enlishlearning.ui.vocabulary.EditVocabularySetScreen
 import com.example.project_enlishlearning.ui.vocabulary.VocabularySetDetailScreen
 import com.example.project_enlishlearning.ui.vocabulary.VocabularySetListScreen
-import androidx.navigation.NavType
-import androidx.navigation.navArgument
-import com.example.project_enlishlearning.ui.vocabulary.EditVocabularyScreen
 
 @Composable
 fun AppNavGraph(navController: NavHostController) {
+
     NavHost(
         navController = navController,
         startDestination = Screen.Splash.route
     ) {
+
+        // Splash
         composable(Screen.Splash.route) {
             SplashScreen(navController = navController)
         }
+
+        // Login
         composable(Screen.Login.route) {
             LoginScreen(
-                navController = navController
+                navController = navController,
+                onForgotPassword = {
+                    navController.navigate(Screen.ForgotPassword.route)
+                }
             )
         }
+
+        // Register
         composable(Screen.Register.route) {
-            RegisterScreen(
-                navController = navController
-            )
+            RegisterScreen(navController = navController)
         }
+
+        // Forgot Password
+        composable(Screen.ForgotPassword.route) {
+            ForgotPasswordScreen(navController)
+        }
+
+        // Email Verification
+        composable(Screen.EmailVerification.route) {
+            EmailVerificationScreen(navController)
+        }
+
+        // Dashboard
         composable(Screen.Dashboard.route) {
             DashboardScreen(
                 navController = navController,
                 selected = BottomNavItem.Dashboard,
-                onBottomItemSelected = { item -> navigateToBottomTab(navController, item) }
+                onBottomItemSelected = {
+                    navigateToBottomTab(navController, it)
+                }
             )
         }
+
+        // Vocabulary List
         composable(Screen.VocabularySetList.route) {
             VocabularySetListScreen(
                 navController = navController,
                 selected = BottomNavItem.Vocabulary,
-                onBottomItemSelected = { item -> navigateToBottomTab(navController, item) }
+                onBottomItemSelected = {
+                    navigateToBottomTab(navController, it)
+                }
             )
         }
-        // 1. Màn hình Tạo bộ từ vựng (Không cần setId, không có BottomBar)
+
+        // Create Vocabulary Set
         composable(Screen.CreateSet.route) {
             CreateVocabularySetScreen(
                 navController = navController
             )
         }
 
-	NavHost(
-		navController = navController,
-		startDestination = Screen.Splash.route
-	) {
-		composable(Screen.Splash.route) {
-			SplashScreen(navController = navController)
-		}
-		composable(Screen.Login.route) {
-			LoginScreen(
-				navController = navController,
-				onForgotPassword = {
-					navController.navigate(
-						Screen.ForgotPassword.route
-					)
-				}
-			)
-		}
-		composable(Screen.Register.route) {
-			RegisterScreen(
-				navController = navController
-			)
-		}
-		composable(Screen.Dashboard.route) {
-			DashboardScreen(
-				navController = navController,
-				selected = BottomNavItem.Dashboard,
-				onBottomItemSelected = { item -> navigateToBottomTab(navController, item) }
-			)
-		}
-		composable(Screen.VocabularySetList.route) {
-			VocabularySetListScreen(
-				navController = navController,
-				selected = BottomNavItem.Vocabulary,
-				onBottomItemSelected = { item -> navigateToBottomTab(navController, item) }
-			)
-		}
-		composable(Screen.CreateSet.route) {
-			CreateVocabularySetScreen(
-				navController = navController,
-				selected = BottomNavItem.Vocabulary,
-				onBottomItemSelected = { item -> navigateToBottomTab(navController, item) }
-			)
-		}
-		composable(Screen.AddVocabulary.route) {
-			AddVocabularyScreen(
-				navController = navController,
-				selected = BottomNavItem.Vocabulary,
-				onBottomItemSelected = { item -> navigateToBottomTab(navController, item) },
-			)
-		}
-		composable(Screen.VocabularySetDetail.route) {
-			VocabularySetDetailScreen(
-				navController = navController,
-				selected = BottomNavItem.Vocabulary,
-				onBottomItemSelected = { item -> navigateToBottomTab(navController, item) }
-			)
-		}
-		composable(Screen.EditVocabularySet.route) {
-			EditVocabularySetScreen(
-				navController = navController,
-				selected = BottomNavItem.Vocabulary,
-				onBottomItemSelected = { item -> navigateToBottomTab(navController, item) }
-			)
-		}
-		composable(Screen.FlashcardLearning.route) {
-			FlashcardLearningScreen(
-				navController = navController
-			)
-		}
-		composable(Screen.FlashcardResult.route) {
-			FlashcardResultScreen(
-				navController = navController
-			)
-		}
-		composable(Screen.NewWordsPreview.route) {
-			NewWordsPreviewScreen(
-				navController = navController,
-			)
-		}
-		composable(Screen.Profile.route) {
-			ProfileScreen(
-				navController = navController,
-				selected = BottomNavItem.Profile,
-				onBottomItemSelected = { item -> navigateToBottomTab(navController, item) }
-			)
-		}
-		composable(Screen.Notification.route) {
-			NotificationSettingsScreen(
-				navController = navController,
-				selected = BottomNavItem.Notification,
-				onBottomItemSelected = { item -> navigateToBottomTab(navController, item) }
-			)
-		}
-		composable(Screen.ReviewVocabulary.route) {
-			ReviewVocabularyScreen(
-				navController = navController
-			)
-		}
-
-		composable(Screen.EditProfileScreen.route) {
-			EditProfileScreen(navController)
-		}
-
-		composable(Screen.ForgotPassword.route) {
-			ForgotPasswordScreen(navController)
-		}
-
-		composable(Screen.EmailVerification.route) {
-			EmailVerificationScreen(navController)
-		}
-	}
-        // 2. Màn hình Thêm từ vựng (Bắt buộc có setId, không có BottomBar)
+        // Add Vocabulary
         composable(
-            route = Screen.AddVocabulary.route + "/{setId}",
-            arguments = listOf(navArgument("setId") { type = NavType.IntType })
+            route = "${Screen.AddVocabulary.route}/{setId}",
+            arguments = listOf(
+                navArgument("setId") {
+                    type = NavType.IntType
+                }
+            )
         ) { backStackEntry ->
-            val setId = backStackEntry.arguments?.getInt("setId") ?: 0
+
+            val setId =
+                backStackEntry.arguments?.getInt("setId") ?: 0
+
             AddVocabularyScreen(
                 navController = navController,
                 setId = setId
             )
         }
 
-        // 3. Màn hình Chi tiết bộ từ vựng (Bắt buộc có setId, CÓ BottomBar)
+        // Vocabulary Detail
         composable(
-            route = Screen.VocabularySetDetail.route + "/{setId}",
-            arguments = listOf(navArgument("setId") { type = NavType.IntType })
+            route = "${Screen.VocabularySetDetail.route}/{setId}",
+            arguments = listOf(
+                navArgument("setId") {
+                    type = NavType.IntType
+                }
+            )
         ) { backStackEntry ->
-            val setId = backStackEntry.arguments?.getInt("setId") ?: 0
+
+            val setId =
+                backStackEntry.arguments?.getInt("setId") ?: 0
+
             VocabularySetDetailScreen(
                 navController = navController,
                 setId = setId,
                 selected = BottomNavItem.Vocabulary,
-                onBottomItemSelected = { item -> navigateToBottomTab(navController, item) }
+                onBottomItemSelected = {
+                    navigateToBottomTab(navController, it)
+                }
             )
         }
 
-        // 4. Màn hình Sửa thông tin bộ từ vựng (Bắt buộc có setId, không có BottomBar)
+        // Edit Vocabulary Set
         composable(
-            route = Screen.EditVocabularySet.route + "/{setId}",
-            arguments = listOf(navArgument("setId") { type = NavType.IntType })
+            route = "${Screen.EditVocabularySet.route}/{setId}",
+            arguments = listOf(
+                navArgument("setId") {
+                    type = NavType.IntType
+                }
+            )
         ) { backStackEntry ->
-            val setId = backStackEntry.arguments?.getInt("setId") ?: 0
+
+            val setId =
+                backStackEntry.arguments?.getInt("setId") ?: 0
+
             EditVocabularySetScreen(
                 navController = navController,
                 setId = setId
             )
         }
+
+        // Flashcard Learning
         composable(Screen.FlashcardLearning.route) {
             FlashcardLearningScreen(
                 navController = navController
             )
         }
+
+        // Flashcard Result
         composable(Screen.FlashcardResult.route) {
             FlashcardResultScreen(
                 navController = navController
             )
         }
+
+        // New Words Preview
         composable(
             route = "${Screen.NewWordsPreview.route}/{setId}",
-            arguments = listOf(navArgument("setId") { type = NavType.IntType })
+            arguments = listOf(
+                navArgument("setId") {
+                    type = NavType.IntType
+                }
+            )
         ) { backStackEntry ->
-            // Lấy setId từ đường dẫn xuống
-            val setId = backStackEntry.arguments?.getInt("setId") ?: 0
+
+            val setId =
+                backStackEntry.arguments?.getInt("setId") ?: 0
 
             NewWordsPreviewScreen(
                 navController = navController,
-                setId = setId // Đã truyền đủ tham số!
+                setId = setId
             )
         }
-        composable(Screen.Profile.route) {
-            ProfileScreen(
-                navController = navController,
-                selected = BottomNavItem.Profile,
-                onBottomItemSelected = { item -> navigateToBottomTab(navController, item) }
-            )
-        }
-        composable(Screen.Notification.route) {
-            NotificationSettingsScreen(
-                navController = navController,
-                selected = BottomNavItem.Notification,
-                onBottomItemSelected = { item -> navigateToBottomTab(navController, item) }
-            )
-        }
+
+        // Review Vocabulary
         composable(Screen.ReviewVocabulary.route) {
             ReviewVocabularyScreen(
                 navController = navController
             )
         }
 
+        // Notification
+        composable(Screen.Notification.route) {
+            NotificationSettingsScreen(
+                navController = navController,
+                selected = BottomNavItem.Notification,
+                onBottomItemSelected = {
+                    navigateToBottomTab(navController, it)
+                }
+            )
+        }
+
+        // Profile
+        composable(Screen.Profile.route) {
+            ProfileScreen(
+                navController = navController,
+                selected = BottomNavItem.Profile,
+                onBottomItemSelected = {
+                    navigateToBottomTab(navController, it)
+                }
+            )
+        }
+
+        // Edit Profile
         composable(Screen.EditProfileScreen.route) {
             EditProfileScreen(navController)
         }
+
+        // Edit Vocabulary
         composable(
             route = "edit_word/{wordId}",
-            arguments = listOf(navArgument("wordId") { type = NavType.IntType })
+            arguments = listOf(
+                navArgument("wordId") {
+                    type = NavType.IntType
+                }
+            )
         ) { backStackEntry ->
-            val wordId = backStackEntry.arguments?.getInt("wordId") ?: 0
-            EditVocabularyScreen(navController = navController, wordId = wordId)
+
+            val wordId =
+                backStackEntry.arguments?.getInt("wordId") ?: 0
+
+            EditVocabularyScreen(
+                navController = navController,
+                wordId = wordId
+            )
         }
     }
 }
 
-private fun navigateToBottomTab(navController: NavController, item: BottomNavItem) {
+private fun navigateToBottomTab(
+    navController: NavController,
+    item: BottomNavItem
+) {
     val target = when (item) {
         BottomNavItem.Dashboard -> Screen.Dashboard.route
         BottomNavItem.Vocabulary -> Screen.VocabularySetList.route
@@ -284,4 +267,3 @@ private fun navigateToBottomTab(navController: NavController, item: BottomNavIte
         launchSingleTop = true
     }
 }
-

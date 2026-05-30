@@ -1,12 +1,8 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
-<<<<<<< HEAD
-
     id("com.google.gms.google-services")
-=======
-    id("com.google.devtools.ksp")
->>>>>>> vocabulary
+    alias(libs.plugins.ksp)
 }
 
 android {
