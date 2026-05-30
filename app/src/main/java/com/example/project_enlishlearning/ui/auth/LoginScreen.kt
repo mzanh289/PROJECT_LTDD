@@ -42,16 +42,89 @@ import com.example.project_enlishlearning.ui.components.PrimaryButton
 import com.example.project_enlishlearning.ui.components.SecondaryButton
 import com.example.project_enlishlearning.ui.theme.AppDimens
 import com.example.project_enlishlearning.ui.theme.ProjectEnlishLearningTheme
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.platform.LocalContext
+import com.example.project_enlishlearning.R
+import com.example.project_enlishlearning.viewmodel.AuthViewModel
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
+import com.google.firebase.Firebase
+import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.auth.auth
+import androidx.compose.ui.res.stringResource
 
 @Composable
 fun LoginScreen(
     navController: NavController,
-    onForgotPassword: () -> Unit = {},
-    onGoogle: () -> Unit = {}
+    viewModel: AuthViewModel = viewModel(),
+    onForgotPassword: () -> Unit = {}
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+    var validationError by remember {
+        mutableStateOf("")
+    }
+
+    var successMessage by remember {
+        mutableStateOf("")
+    }
+
+    val context = LocalContext.current
+
+    val gso = GoogleSignInOptions.Builder(
+        GoogleSignInOptions.DEFAULT_SIGN_IN
+    )
+        .requestIdToken(
+            "330755271275-83ou1449iqobacau0ib8mkm37bb35n9u.apps.googleusercontent.com"
+        )
+        .requestEmail()
+        .build()
+
+    val googleSignInClient =
+        GoogleSignIn.getClient(context, gso)
+
+    val launcher =
+        rememberLauncherForActivityResult(
+            contract =
+                ActivityResultContracts.StartActivityForResult()
+        ) { result ->
+
+            val task = GoogleSignIn
+                .getSignedInAccountFromIntent(result.data)
+
+            try {
+
+                val account = task.getResult(
+                    ApiException::class.java
+                )
+
+                val credential =
+                    GoogleAuthProvider.getCredential(
+                        account.idToken,
+                        null
+                    )
+
+                Firebase.auth
+                    .signInWithCredential(credential)
+                    .addOnCompleteListener {
+
+                        if (it.isSuccessful) {
+
+                            navController.navigate(
+                                Screen.Dashboard.route
+                            )
+                        }
+                    }
+
+            } catch (e: Exception) {
+
+                e.printStackTrace()
+            }
+        }
 
     Scaffold(
         topBar = {
@@ -135,12 +208,76 @@ fun LoginScreen(
                         Spacer(modifier = Modifier.height(18.dp))
 
                         PrimaryButton(
-                            text = "Sign In",
+                            text = if (viewModel.loading) "Loading..." else "Sign In",
                             onClick = {
-                                navController.navigate(Screen.Dashboard.route)
+
+                                validationError = ""
+                                successMessage = ""
+
+                                when {
+
+                                    email.isBlank() -> {
+                                        validationError = "Email cannot be empty"
+                                        return@PrimaryButton
+                                    }
+
+                                    !android.util.Patterns.EMAIL_ADDRESS
+                                        .matcher(email)
+                                        .matches() -> {
+
+                                        validationError = "Invalid email format"
+                                        return@PrimaryButton
+                                    }
+
+                                    password.isBlank() -> {
+                                        validationError = "Password cannot be empty"
+                                        return@PrimaryButton
+                                    }
+
+                                    password.length < 6 -> {
+                                        validationError = "Password must be at least 6 characters"
+                                        return@PrimaryButton
+                                    }
+                                }
+
+                                viewModel.login(
+                                    email = email,
+                                    password = password
+                                ) {
+
+                                    successMessage = "Login successful"
+
+                                    navController.navigate(
+                                        Screen.Dashboard.route
+                                    ) {
+                                        popUpTo(Screen.Login.route) {
+                                            inclusive = true
+                                        }
+                                    }
+                                }
                             },
                             modifier = Modifier.fillMaxWidth()
                         )
+
+                        if (validationError.isNotEmpty()) {
+
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            Text(
+                                text = validationError,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
+
+                        if (viewModel.error.isNotEmpty()) {
+
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            Text(
+                                text = viewModel.error,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
 
                         Spacer(modifier = Modifier.height(18.dp))
 
@@ -159,7 +296,12 @@ fun LoginScreen(
 
                         SecondaryButton(
                             text = "Continue with Google",
-                            onClick = onGoogle,
+                            onClick = {
+
+                                launcher.launch(
+                                    googleSignInClient.signInIntent
+                                )
+                            },
                             modifier = Modifier.fillMaxWidth()
                         )
                     }

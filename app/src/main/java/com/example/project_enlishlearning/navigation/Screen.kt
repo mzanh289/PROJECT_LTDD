@@ -17,5 +17,7 @@ sealed class Screen(val route: String) {
 	data object EditVocabularySet : Screen("edit_vocabulary_set")
 	data object ReviewVocabulary : Screen("review_vocabulary")
 	data object EditProfileScreen : Screen("edit_profile")
+	data object ForgotPassword : Screen("forgot_password")
+	data object EmailVerification : Screen("email_verification")
 }
 
