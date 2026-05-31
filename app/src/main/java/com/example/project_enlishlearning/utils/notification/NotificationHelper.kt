@@ -19,8 +19,8 @@ object NotificationHelper {
             NotificationChannelHelper.CHANNEL_ID
         )
             .setSmallIcon(R.drawable.ic_launcher_foreground)
-            .setContentTitle("Time to study!")
-            .setContentText("Don't forget to review your vocabulary today.")
+            .setContentTitle("📚 Time to study!")
+            .setContentText("🔔 Don't forget to review your vocabulary today.")
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .build()
 

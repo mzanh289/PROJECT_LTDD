@@ -4,23 +4,22 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import java.util.Calendar
 import android.util.Log
+import java.util.Date
 
 object AlarmScheduler {
 
     private const val REQUEST_CODE = 1001
+    private const val TAG = "ALARM_TEST"
 
     fun scheduleDailyReminder(
         context: Context,
         hour: Int,
         minute: Int
     ) {
-
-        Log.d(
-            "ALARM_TEST",
-            "Scheduling alarm at $hour:$minute"
-        )
+        Log.d(TAG, "Scheduling alarm at $hour:$minute")
 
         cancelReminder(context)
 
@@ -30,37 +29,45 @@ object AlarmScheduler {
         val intent = Intent(
             context,
             ReminderReceiver::class.java
-        )
+        ).setPackage(context.packageName)
 
         val pendingIntent = PendingIntent.getBroadcast(
             context,
             REQUEST_CODE,
             intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
-        val calendar = Calendar.getInstance().apply {
+        // ===== FIXED TIME LOGIC =====
+        val nowMillis = System.currentTimeMillis()
 
+        val targetMillis = Calendar.getInstance().apply {
             set(Calendar.HOUR_OF_DAY, hour)
-
             set(Calendar.MINUTE, minute)
-
             set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
 
-            if (before(Calendar.getInstance())) {
-                add(Calendar.DAY_OF_MONTH, 1)
-            }
+        val triggerMillis = if (targetMillis <= nowMillis) {
+            targetMillis + AlarmManager.INTERVAL_DAY
+        } else {
+            targetMillis
         }
 
-        Log.d(
-            "ALARM_TEST",
-            "Trigger millis = ${calendar.timeInMillis}"
-        )
+        // ===== LOG DEBUG =====
+        Log.d(TAG, "Now millis = $nowMillis")
+        Log.d(TAG, "Target millis = $targetMillis")
+        Log.d(TAG, "Trigger millis = $triggerMillis")
+        Log.d(TAG, "Trigger time = ${Date(triggerMillis)}")
 
-        alarmManager.setRepeating(
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            Log.d(TAG, "canScheduleExactAlarms = ${alarmManager.canScheduleExactAlarms()}")
+        }
+
+        // ===== ALARM =====
+        alarmManager.setExactAndAllowWhileIdle(
             AlarmManager.RTC_WAKEUP,
-            calendar.timeInMillis,
-            AlarmManager.INTERVAL_DAY,
+            triggerMillis,
             pendingIntent
         )
     }
@@ -72,13 +79,13 @@ object AlarmScheduler {
         val intent = Intent(
             context,
             ReminderReceiver::class.java
-        )
+        ).setPackage(context.packageName)
 
         val pendingIntent = PendingIntent.getBroadcast(
             context,
             REQUEST_CODE,
             intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
         val alarmManager =
