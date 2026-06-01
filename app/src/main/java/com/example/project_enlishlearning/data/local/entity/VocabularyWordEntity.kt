@@ -16,7 +16,7 @@ import androidx.room.PrimaryKey
 )
 data class VocabularyWordEntity(
     @PrimaryKey(autoGenerate = true)
-    val wordId: Int = 0,
+    val wordId: Long = 0,
     val setId: Int, // Khóa ngoại liên kết với bảng trên
     val word: String,
     val pronunciation: String,

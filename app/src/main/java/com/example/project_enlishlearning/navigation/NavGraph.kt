@@ -124,7 +124,7 @@ fun AppNavGraph(
                     navController.navigate(Screen.VocabularySetList.route)
                 },
                 onFlashcardClick = {
-                    navController.navigate(Screen.FlashcardLearning.route)
+                    navController.navigate(Screen.VocabularySetList.route)
                 }
             )
         }
@@ -227,16 +227,58 @@ fun AppNavGraph(
         }
 
         // Flashcard Learning
-        composable(Screen.FlashcardLearning.route) {
+        composable(
+            route = "${Screen.FlashcardLearning.route}/{setId}/{mode}",
+            arguments = listOf(
+                navArgument("setId") {
+                    type = NavType.IntType
+                },
+                navArgument("mode") {
+                    type = NavType.StringType
+                }
+            )
+        ) { backStackEntry ->
+
+            val setId = backStackEntry.arguments?.getInt("setId") ?: 0
+            val mode = backStackEntry.arguments?.getString("mode") ?: "normal"
+
             FlashcardLearningScreen(
-                navController = navController
+                navController = navController,
+                setId = setId,
+                mode = mode
             )
         }
 
         // Flashcard Result
-        composable(Screen.FlashcardResult.route) {
+        composable(
+            route = "${Screen.FlashcardResult.route}/{setId}/{correct}/{wrong}/{total}",
+            arguments = listOf(
+                navArgument("setId") {
+                    type = NavType.IntType
+                },
+                navArgument("correct") {
+                    type = NavType.IntType
+                },
+                navArgument("wrong") {
+                    type = NavType.IntType
+                },
+                navArgument("total") {
+                    type = NavType.IntType
+                }
+            )
+        ) { backStackEntry ->
+
+            val setId = backStackEntry.arguments?.getInt("setId") ?: 0
+            val correct = backStackEntry.arguments?.getInt("correct") ?: 0
+            val wrong = backStackEntry.arguments?.getInt("wrong") ?: 0
+            val total = backStackEntry.arguments?.getInt("total") ?: 0
+
             FlashcardResultScreen(
-                navController = navController
+                navController = navController,
+                setId = setId,
+                correct = correct,
+                wrong = wrong,
+                total = total
             )
         }
 
@@ -260,9 +302,20 @@ fun AppNavGraph(
         }
 
         // Review Vocabulary
-        composable(Screen.ReviewVocabulary.route) {
+        composable(
+            route = "${Screen.ReviewVocabulary.route}/{setId}",
+            arguments = listOf(
+                navArgument("setId") {
+                    type = NavType.IntType
+                }
+            )
+        ) { backStackEntry ->
+
+            val setId = backStackEntry.arguments?.getInt("setId") ?: 0
+
             ReviewVocabularyScreen(
-                navController = navController
+                navController = navController,
+                setId = setId
             )
         }
 
@@ -309,13 +362,13 @@ fun AppNavGraph(
             route = "edit_word/{wordId}",
             arguments = listOf(
                 navArgument("wordId") {
-                    type = NavType.IntType
+                    type = NavType.LongType
                 }
             )
         ) { backStackEntry ->
 
             val wordId =
-                backStackEntry.arguments?.getInt("wordId") ?: 0
+                backStackEntry.arguments?.getLong("wordId") ?: 0L
 
             EditVocabularyScreen(
                 navController = navController,

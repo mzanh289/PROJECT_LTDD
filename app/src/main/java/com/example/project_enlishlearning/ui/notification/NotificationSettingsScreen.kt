@@ -35,13 +35,9 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -57,17 +53,28 @@ import com.example.project_enlishlearning.ui.theme.AppDimens
 import com.example.project_enlishlearning.ui.theme.GradientEnd
 import com.example.project_enlishlearning.ui.theme.GradientStart
 import com.example.project_enlishlearning.ui.theme.ProjectEnlishLearningTheme
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.runtime.collectAsState
+import com.example.project_enlishlearning.viewmodel.NotificationViewModel
+import androidx.compose.ui.platform.LocalContext
+import com.example.project_enlishlearning.ui.components.PrimaryButton
+import com.example.project_enlishlearning.utils.notification.NotificationHelper
+import android.app.TimePickerDialog
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun NotificationSettingsScreen(
     navController: NavController,
     selected: BottomNavItem = BottomNavItem.Notification,
-    onBottomItemSelected: (BottomNavItem) -> Unit = {}
+    onBottomItemSelected: (BottomNavItem) -> Unit = {},
+    viewModel: NotificationViewModel = viewModel()
 ) {
-    var dailyReminder by remember { mutableStateOf(true) }
-    var reviewReminder by remember { mutableStateOf(true) }
-    var pushNotification by remember { mutableStateOf(true) }
-    var emailNotification by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
+    val dailyReminder by viewModel.dailyReminderEnabled.collectAsState()
+    val selectedHour by viewModel.selectedHour.collectAsState()
+    val selectedMinute by viewModel.selectedMinute.collectAsState()
 
     Scaffold(
         topBar = {
@@ -104,24 +111,40 @@ fun NotificationSettingsScreen(
             ) {
                 NotificationHeaderCard()
 
-                NotificationSection(title = "Daily Reminder") {
+                NotificationSection(title = "Daily Reminder"){
                     NotificationToggleItem(
                         icon = Icons.Default.NotificationsActive,
                         title = "Daily learning reminder",
-                        subtitle = "Remind you to learn new vocabulary every day based on your schedule",
+                        subtitle = "Remind you to learn new vocabulary every day",
                         checked = dailyReminder,
                         recommended = true,
-                        onCheckedChange = { dailyReminder = it }
+                        onCheckedChange = {
+                            viewModel.toggleDailyReminder(it)
+                        }
+                    )
+
+                    NotificationTimeCard(
+                        hour = selectedHour,
+                        minute = selectedMinute,
+                        onTimeSelected = { hour, minute ->
+
+                            viewModel.updateReminderTime(
+                                hour,
+                                minute
+                            )
+                        }
                     )
                 }
+
+
 
                 NotificationSection(title = "Review Reminder") {
                     NotificationToggleItem(
                         icon = Icons.Default.Schedule,
                         title = "Review due reminder",
-                        subtitle = "Based on the Spaced Repetition (SM-2) algorithm",
-                        checked = reviewReminder,
-                        onCheckedChange = { reviewReminder = it }
+                        subtitle = "Comming soon",
+                        checked = false,
+                        onCheckedChange = {}
                     )
                 }
 
@@ -129,9 +152,9 @@ fun NotificationSettingsScreen(
                     NotificationToggleItem(
                         icon = Icons.Default.Notifications,
                         title = "Push Notification",
-                        subtitle = "Receive notifications on your phone",
-                        checked = pushNotification,
-                        onCheckedChange = { pushNotification = it }
+                        subtitle = "Comming soon",
+                        checked = false,
+                        onCheckedChange = {}
                     )
 
                     HorizontalDivider(
@@ -144,13 +167,91 @@ fun NotificationSettingsScreen(
                     NotificationToggleItem(
                         icon = Icons.Default.Email,
                         title = "Email Notification",
-                        subtitle = "Receive notifications via email",
-                        checked = emailNotification,
-                        onCheckedChange = { emailNotification = it }
+                        subtitle = "Comming soon",
+                        checked = false,
+                        onCheckedChange = {}
                     )
                 }
 
                 InfoFooter()
+
+                PrimaryButton(
+                    text = "Test Notification",
+                    onClick = {
+                        viewModel.testNotification()
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun NotificationTimeCard(
+    hour: Int,
+    minute: Int,
+    onTimeSelected: (Int, Int) -> Unit
+) {
+
+    val context = LocalContext.current
+
+    AppCard(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(AppDimens.CardPadding),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+
+                Text(
+                    text = "Reminder Time",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold
+                )
+
+                Spacer(
+                    modifier = Modifier.height(4.dp)
+                )
+
+                Text(
+                    text = String.format(
+                        "%02d:%02d",
+                        hour,
+                        minute
+                    ),
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
+
+            TextButton(
+                onClick = {
+
+                    val picker = TimePickerDialog(
+                        context,
+                        { _, h, m ->
+
+                            onTimeSelected(
+                                h,
+                                m
+                            )
+                        },
+                        hour,
+                        minute,
+                        true
+                    )
+
+                    picker.show()
+                }
+            ) {
+
+                Text("Change")
             }
         }
     }
@@ -251,7 +352,6 @@ fun NotificationToggleItem(
             .padding(vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // 1. Icon bên trái
         Box(
             modifier = Modifier
                 .size(44.dp)
@@ -296,7 +396,7 @@ fun NotificationToggleItem(
             )
         }
 
-        Spacer(modifier = Modifier.width(8.dp)) // Khoảng cách an toàn trước khi đến Switch
+        Spacer(modifier = Modifier.width(8.dp))
 
         Switch(
             checked = checked,

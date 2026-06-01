@@ -166,7 +166,7 @@ class VocabularyViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     fun updateWord(
-        wordId: Int,
+        wordId: Long,
         setId: Int,
         word: String,
         pronunciation: String,
@@ -190,7 +190,7 @@ class VocabularyViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
-    fun loadWordById(wordId: Int) {
+    fun loadWordById(wordId: Long) {
         viewModelScope.launch {
             _currentEditWord.value = repository.getWordById(wordId)
         }
