@@ -86,7 +86,9 @@ fun NewWordsPreviewScreen(
                     text = "Start Flashcard Session",
                     onClick = {
                         // Nhớ truyền tiếp setId sang màn hình FlashcardLearning nếu màn hình đó cũng cần tải Database nhé
-                        navController.navigate("${Screen.FlashcardLearning.route}/$setId")
+                        navController.navigate(
+                            Screen.FlashcardLearning.createRoute(setId)
+                        )
                     },
                     modifier = Modifier
                         .fillMaxWidth()

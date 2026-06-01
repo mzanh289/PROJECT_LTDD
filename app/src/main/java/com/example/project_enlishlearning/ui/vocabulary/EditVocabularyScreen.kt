@@ -26,7 +26,7 @@ import com.example.project_enlishlearning.viewmodel.VocabularyViewModel
 @Composable
 fun EditVocabularyScreen(
     navController: NavController,
-    wordId: Int,
+    wordId: Long,
     viewModel: VocabularyViewModel = viewModel(
         factory = ViewModelProvider.AndroidViewModelFactory.getInstance(
             LocalContext.current.applicationContext as Application
