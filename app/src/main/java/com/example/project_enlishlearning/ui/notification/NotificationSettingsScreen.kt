@@ -107,7 +107,6 @@ fun NotificationSettingsScreen(
                     ),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                NotificationHeaderCard()
 
                 NotificationSection(title = "Daily Reminder"){
                     NotificationToggleItem(
@@ -250,57 +249,6 @@ fun NotificationTimeCard(
             ) {
 
                 Text("Change")
-            }
-        }
-    }
-}
-
-@Composable
-fun NotificationHeaderCard() {
-    AppCard(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier
-                .background(
-                    Brush.linearGradient(
-                        listOf(
-                            GradientStart.copy(alpha = 0.9f),
-                            GradientEnd.copy(alpha = 0.6f)
-                        )
-                    )
-                )
-                .padding(AppDimens.CardPadding),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(54.dp)
-                    .background(
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
-                        CircleShape
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Alarm,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            }
-
-            Spacer(modifier = Modifier.width(14.dp))
-
-            Column {
-                Text(
-                    text = "Stay Consistent",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "Manage how you receive learning reminders",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
             }
         }
     }

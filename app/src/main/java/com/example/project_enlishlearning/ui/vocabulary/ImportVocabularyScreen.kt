@@ -20,11 +20,15 @@ import androidx.compose.material.icons.filled.UploadFile
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -33,6 +37,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.project_enlishlearning.data.importexport.ImportPreview
+import com.example.project_enlishlearning.navigation.Screen
 import com.example.project_enlishlearning.ui.components.AppCard
 import com.example.project_enlishlearning.ui.components.AppGradientBackground
 import com.example.project_enlishlearning.ui.components.AppSectionHeader
@@ -58,6 +63,15 @@ fun ImportVocabularyScreen(
     val previewState by viewModel.importPreviewState.collectAsState()
     val importState by viewModel.importState.collectAsState()
     val selectedFileName by viewModel.selectedImportFileName.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(importState) {
+        if (importState is ImportState.Success) {
+            snackbarHostState.showSnackbar("Import vocabulary successfully!")
+            viewModel.resetImportState()
+            navController.navigate(Screen.VocabularySetDetail.route)
+        }
+    }
 
     DisposableEffect(Unit) {
         onDispose {
@@ -80,6 +94,7 @@ fun ImportVocabularyScreen(
     }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             AppToolbar(
                 title = "Import Vocabulary",

@@ -386,36 +386,6 @@ private fun FlashcardBack(word: VocabularyWordEntity,
 }
 
 @Composable
-private fun DailyPlanItem(title: String, value: String) {
-    Column {
-        Text(
-            text = value,
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.primary
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = title,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-}
-
-@Composable
-private fun Sm2Info(title: String, value: String) {
-    Column {
-        Text(text = value, style = MaterialTheme.typography.titleLarge)
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = title,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-}
-
-@Composable
 private fun SrsButton(
     text: String,
     color: Color,

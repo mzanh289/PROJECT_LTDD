@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Flag
@@ -49,15 +50,22 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import com.example.project_enlishlearning.ui.components.AppToolbar
+import com.example.project_enlishlearning.ui.components.BottomNavItem
+import com.example.project_enlishlearning.ui.components.BottomNavigationBar
 import com.example.project_enlishlearning.viewmodel.AuthViewModel
 import com.example.project_enlishlearning.viewmodel.ProfileViewModel
 
 @Composable
 fun ProfileScreen(
+	navController: NavController,
 	authViewModel: AuthViewModel,
 	profileViewModel: ProfileViewModel,
 	onEditProfileClick: () -> Unit,
-	onLogoutClick: () -> Unit
+	onLogoutClick: () -> Unit,
+	selected: BottomNavItem = BottomNavItem.Profile,
+	onBottomItemSelected: (BottomNavItem) -> Unit = {},
 ) {
 	val profile by profileViewModel.profile.collectAsState()
 
@@ -81,7 +89,22 @@ fun ProfileScreen(
 
 	val levelProgress = getLevelProgress(englishLevel)
 
-	Scaffold { padding ->
+	Scaffold(
+		topBar = {
+			AppToolbar(
+				title = "Profile",
+				subtitle = "Manage your learning profile and goals.",
+				navigationIcon = Icons.AutoMirrored.Filled.ArrowBack,
+				onNavigationClick = { navController.popBackStack() }
+			)
+		},
+		bottomBar = {
+			BottomNavigationBar(
+				selected = selected,
+				onItemSelected = onBottomItemSelected
+			)
+		}
+	) { padding ->
 
 		Box(
 			modifier = Modifier
@@ -101,10 +124,6 @@ fun ProfileScreen(
 				contentPadding = PaddingValues(18.dp),
 				verticalArrangement = Arrangement.spacedBy(18.dp)
 			) {
-
-				item {
-					ProfileHeader()
-				}
 
 				item {
 					ProfileHeroCard(
@@ -149,25 +168,6 @@ fun ProfileScreen(
 				}
 			}
 		}
-	}
-}
-
-@Composable
-private fun ProfileHeader() {
-	Column {
-		Text(
-			text = "Profile",
-			style = MaterialTheme.typography.headlineLarge,
-			fontWeight = FontWeight.Bold
-		)
-
-		Spacer(modifier = Modifier.height(6.dp))
-
-		Text(
-			text = "Manage your learning profile and goals.",
-			style = MaterialTheme.typography.bodyLarge,
-			color = MaterialTheme.colorScheme.onSurfaceVariant
-		)
 	}
 }
 

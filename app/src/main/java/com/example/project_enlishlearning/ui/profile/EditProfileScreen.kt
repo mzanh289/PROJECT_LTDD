@@ -40,6 +40,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.project_enlishlearning.ui.components.AppToolbar
+import com.example.project_enlishlearning.ui.components.BottomNavItem
+import com.example.project_enlishlearning.ui.components.BottomNavigationBar
 import com.example.project_enlishlearning.viewmodel.AuthViewModel
 import com.example.project_enlishlearning.viewmodel.ProfileViewModel
 
@@ -47,7 +49,9 @@ import com.example.project_enlishlearning.viewmodel.ProfileViewModel
 fun EditProfileScreen(
     navController: NavController,
     authViewModel: AuthViewModel,
-    profileViewModel: ProfileViewModel
+    profileViewModel: ProfileViewModel,
+    selected: BottomNavItem = BottomNavItem.Profile,
+    onBottomItemSelected: (BottomNavItem) -> Unit = {}
 ) {
     val profile by profileViewModel.profile.collectAsState()
 
@@ -79,7 +83,14 @@ fun EditProfileScreen(
                     navController.popBackStack()
                 }
             )
+        },
+        bottomBar = {
+            BottomNavigationBar(
+                selected = selected,
+                onItemSelected = onBottomItemSelected
+            )
         }
+
     ) { padding ->
 
         Box(

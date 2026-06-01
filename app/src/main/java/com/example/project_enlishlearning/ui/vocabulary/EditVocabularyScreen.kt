@@ -33,7 +33,7 @@ fun EditVocabularyScreen(
 
     // 2. Tự động gọi ViewModel lấy dữ liệu khi mở màn hình
     LaunchedEffect(wordId) {
-        viewModel.loadWordById(wordId)
+        viewModel.loadWordById(wordId as Int)
     }
 
     var wordText by remember { mutableStateOf("") }

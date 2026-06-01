@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.MenuBook
@@ -40,14 +41,22 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import com.example.project_enlishlearning.data.repository.DashboardRepository
+import com.example.project_enlishlearning.ui.components.AppToolbar
+import com.example.project_enlishlearning.ui.components.BottomNavItem
+import com.example.project_enlishlearning.ui.components.BottomNavigationBar
+import com.example.project_enlishlearning.ui.theme.ProjectEnlishLearningTheme
 import com.example.project_enlishlearning.viewmodel.AuthViewModel
 import com.example.project_enlishlearning.viewmodel.DashboardViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 
 @Composable
 fun DashboardScreen(
+    navController: NavController,
     viewModel: DashboardViewModel,
-    onProfileClick: () -> Unit,
-    onVocabularyClick: () -> Unit,
+    selected: BottomNavItem = BottomNavItem.Dashboard,
+    onBottomItemSelected: (BottomNavItem) -> Unit = {},
     onFlashcardClick: () -> Unit
 ) {
     val totalVocabularySets by viewModel.totalVocabularySets.collectAsState()
@@ -66,7 +75,22 @@ fun DashboardScreen(
         0f
     }
 
-    Scaffold { padding ->
+    Scaffold (
+        topBar = {
+            AppToolbar(
+                title = "Dashboard",
+                subtitle = "Ready to improve your English today?",
+                navigationIcon = Icons.AutoMirrored.Filled.ArrowBack,
+                onNavigationClick = { navController.popBackStack() }
+            )
+        },
+        bottomBar = {
+            BottomNavigationBar(
+                selected = selected,
+                onItemSelected = onBottomItemSelected
+            )
+        }
+    ) { padding ->
 
         Box(
             modifier = Modifier
@@ -86,11 +110,6 @@ fun DashboardScreen(
                 contentPadding = PaddingValues(18.dp),
                 verticalArrangement = Arrangement.spacedBy(18.dp)
             ) {
-
-                item {
-                    DashboardHeader()
-                }
-
                 item {
                     TodayReviewCard(
                         reviewDueToday = reviewDueToday,
@@ -150,33 +169,8 @@ fun DashboardScreen(
                     )
                 }
 
-                item {
-                    QuickActionsCard(
-                        onFlashcardClick = onFlashcardClick,
-                        onVocabularyClick = onVocabularyClick,
-                        onProfileClick = onProfileClick
-                    )
-                }
             }
         }
-    }
-}
-
-@Composable
-private fun DashboardHeader() {
-    Column {
-        Text(
-            text = "Dashboard",
-            style = MaterialTheme.typography.headlineLarge
-        )
-
-        Spacer(modifier = Modifier.height(6.dp))
-
-        Text(
-            text = "Ready to improve your English today?",
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
     }
 }
 
@@ -355,73 +349,5 @@ private fun ProgressText(
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-    }
-}
-
-@Composable
-private fun QuickActionsCard(
-    onFlashcardClick: () -> Unit,
-    onVocabularyClick: () -> Unit,
-    onProfileClick: () -> Unit
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(28.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Text(
-                text = "Quick Actions",
-                style = MaterialTheme.typography.titleLarge
-            )
-
-            Button(
-                onClick = onFlashcardClick,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(18.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.PlayArrow,
-                    contentDescription = null
-                )
-
-                Spacer(modifier = Modifier.width(8.dp))
-
-                Text("Start Flashcard")
-            }
-
-            Button(
-                onClick = onVocabularyClick,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(18.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.MenuBook,
-                    contentDescription = null
-                )
-
-                Spacer(modifier = Modifier.width(8.dp))
-
-                Text("Manage Vocabulary")
-            }
-
-            Button(
-                onClick = onProfileClick,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(18.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = null
-                )
-
-                Spacer(modifier = Modifier.width(8.dp))
-
-                Text("Profile")
-            }
-        }
     }
 }

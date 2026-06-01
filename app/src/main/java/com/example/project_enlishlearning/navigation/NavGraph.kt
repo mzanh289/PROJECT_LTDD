@@ -117,14 +117,12 @@ fun AppNavGraph(
         composable(Screen.Dashboard.route) {
             DashboardScreen(
                 viewModel = dashboardViewModel,
-                onProfileClick = {
-                    navController.navigate(Screen.Profile.route)
-                },
-                onVocabularyClick = {
-                    navController.navigate(Screen.VocabularySetList.route)
-                },
+                navController = navController,
                 onFlashcardClick = {
                     navController.navigate(Screen.VocabularySetList.route)
+                },
+                onBottomItemSelected = {
+                    navigateToBottomTab(navController, it)
                 }
             )
         }
@@ -331,6 +329,7 @@ fun AppNavGraph(
         // Profile
         composable(Screen.Profile.route) {
             ProfileScreen(
+                navController = navController,
                 authViewModel = authViewModel,
                 profileViewModel = profileViewModel,
                 onEditProfileClick = {
@@ -342,6 +341,9 @@ fun AppNavGraph(
                             inclusive = true
                         }
                     }
+                },
+                onBottomItemSelected = {
+                    navigateToBottomTab(navController, it)
                 }
             )
         }

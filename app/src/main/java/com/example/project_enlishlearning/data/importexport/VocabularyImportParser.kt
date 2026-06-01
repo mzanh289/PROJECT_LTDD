@@ -37,8 +37,8 @@ class VocabularyImportParser {
             val lineNumber = index + 1
             val columns = parseCsvLine(rawLine)
             val word = columns.getOrNull(0)?.trim().orEmpty()
-            val meaning = columns.getOrNull(1)?.trim().orEmpty()
-            val pronunciation = columns.getOrNull(2)?.trim().orEmpty()
+            val pronunciation = columns.getOrNull(1)?.trim().orEmpty()
+            val meaning  = columns.getOrNull(2)?.trim().orEmpty()
             val example = columns.getOrNull(3)?.trim().orEmpty()
 
             if (word.isBlank() || meaning.isBlank()) {

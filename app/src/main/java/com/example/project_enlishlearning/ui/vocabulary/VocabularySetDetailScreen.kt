@@ -186,31 +186,33 @@ fun VocabularySetDetailScreen(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
-                                SecondaryButton(
-                                    text = "Add",
-                                    onClick = {
-                                        navController.navigate("${Screen.AddVocabulary.route}/$setId")
-                                    },
-                                    leadingIcon = Icons.Default.Add,
-                                    modifier = Modifier.weight(1f)
-                                )
-                                SecondaryButton(
-                                    text = "Import",
-                                    onClick = {
-                                        navController.navigate("${Screen.ImportVocabulary.route}/$setId")
-                                    },
-                                    leadingIcon = Icons.Default.UploadFile,
-                                    modifier = Modifier.weight(1f)
-                                )
-                                PrimaryButton(
-                                    text = "Export",
-                                    onClick = {
-                                        viewModel.exportVocabularySet(setId, currentSet?.title)
-                                    },
-                                    leadingIcon = Icons.Default.FileDownload,
-                                    enabled = exportState !is ExportState.Loading,
-                                    modifier = Modifier.weight(1f)
-                                )
+                                    SecondaryButton(
+                                        text = "Add",
+                                        onClick = {
+                                            navController.navigate("${Screen.AddVocabulary.route}/$setId")
+                                        },
+                                        leadingIcon = Icons.Default.Add,
+                                        modifier = Modifier.weight(1f).widthIn(min = 0.dp)
+                                    )
+
+                                    SecondaryButton(
+                                        text = "Import",
+                                        onClick = {
+                                            navController.navigate("${Screen.ImportVocabulary.route}/$setId")
+                                        },
+                                        leadingIcon = Icons.Default.UploadFile,
+                                        modifier = Modifier.weight(1f).widthIn(min = 0.dp)
+                                    )
+
+                                    PrimaryButton(
+                                        text = "Export",
+                                        onClick = {
+                                            viewModel.exportVocabularySet(setId, currentSet?.title)
+                                        },
+                                        leadingIcon = Icons.Default.FileDownload,
+                                        enabled = exportState !is ExportState.Loading,
+                                        modifier = Modifier.weight(1f).widthIn(min = 0.dp)
+                                    )
                             }
                             Spacer(modifier = Modifier.height(12.dp))
                             VocabularySearchBar(
