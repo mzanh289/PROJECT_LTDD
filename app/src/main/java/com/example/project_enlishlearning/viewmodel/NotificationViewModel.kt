@@ -17,8 +17,6 @@ class NotificationViewModel(
     application: Application
 ) : AndroidViewModel(application) {
 
-    private val context = application.applicationContext
-
     private val _dailyReminderEnabled = MutableStateFlow(true)
     val dailyReminderEnabled: StateFlow<Boolean> =
         _dailyReminderEnabled.asStateFlow()

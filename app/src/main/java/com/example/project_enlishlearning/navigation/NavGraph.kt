@@ -189,7 +189,6 @@ fun AppNavGraph(
             )
         }
 
-        // Import Vocabulary
         composable(
             route = "${Screen.ImportVocabulary.route}/{setId}",
             arguments = listOf(
@@ -207,7 +206,6 @@ fun AppNavGraph(
             )
         }
 
-        // Edit Vocabulary Set
         composable(
             route = "${Screen.EditVocabularySet.route}/{setId}",
             arguments = listOf(
@@ -368,7 +366,7 @@ fun AppNavGraph(
         ) { backStackEntry ->
 
             val wordId =
-                backStackEntry.arguments?.getLong("wordId") ?: 0L
+                backStackEntry.arguments?.getInt("wordId") ?: 0L
 
             EditVocabularyScreen(
                 navController = navController,

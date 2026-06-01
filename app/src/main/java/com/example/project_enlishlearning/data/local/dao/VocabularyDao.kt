@@ -59,7 +59,7 @@ interface VocabularyDao {
     suspend fun deleteWord(word: VocabularyWordEntity): Int
 
     @Query("SELECT * FROM vocabulary_words WHERE wordId = :id")
-    suspend fun getWordById(id: Long): VocabularyWordEntity?
+    suspend fun getWordById(id: Int): VocabularyWordEntity?
 
     @Query("SELECT * FROM vocabulary_sets WHERE userId = :userId ORDER BY setId ASC")
     fun getAllSetsByUserId(userId: String): Flow<List<VocabularySetEntity>>

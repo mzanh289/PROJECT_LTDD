@@ -5,28 +5,22 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.RecordVoiceOver
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.example.project_enlishlearning.ui.components.*
-import com.example.project_enlishlearning.ui.theme.AppDimens
-import com.example.project_enlishlearning.ui.theme.ProjectEnlishLearningTheme
 import com.example.project_enlishlearning.viewmodel.VocabularyViewModel
 
 
 @Composable
 fun EditVocabularyScreen(
     navController: NavController,
-    wordId: Long,
+    wordId: Any,
     viewModel: VocabularyViewModel = viewModel(
         factory = ViewModelProvider.AndroidViewModelFactory.getInstance(
             LocalContext.current.applicationContext as Application

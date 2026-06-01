@@ -19,19 +19,15 @@ class ReminderReceiver : BroadcastReceiver() {
 
         Log.d("ALARM_TEST", "RECEIVER FIRED")
 
-        // 1. Show notification
         NotificationHelper.showDailyReminder(context)
 
-        // 2. Lấy lại giờ đã lưu (hoặc fallback default)
         val prefs = NotificationPreferences(context)
 
-        // chạy coroutine vì Flow
         CoroutineScope(Dispatchers.IO).launch {
 
             val hour = prefs.reminderHour.first()
             val minute = prefs.reminderMinute.first()
 
-            // 3. schedule lại cho ngày mai
             val calendar = Calendar.getInstance().apply {
                 add(Calendar.DAY_OF_MONTH, 1)
                 set(Calendar.HOUR_OF_DAY, hour)

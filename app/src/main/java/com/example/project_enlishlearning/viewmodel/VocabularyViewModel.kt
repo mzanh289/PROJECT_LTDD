@@ -190,7 +190,7 @@ class VocabularyViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
-    fun loadWordById(wordId: Long) {
+    fun loadWordById(wordId: Int) {
         viewModelScope.launch {
             _currentEditWord.value = repository.getWordById(wordId)
         }

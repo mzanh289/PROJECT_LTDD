@@ -55,13 +55,11 @@ import com.example.project_enlishlearning.ui.theme.GradientStart
 import com.example.project_enlishlearning.ui.theme.ProjectEnlishLearningTheme
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.runtime.collectAsState
-import com.example.project_enlishlearning.viewmodel.NotificationViewModel
 import androidx.compose.ui.platform.LocalContext
 import com.example.project_enlishlearning.ui.components.PrimaryButton
-import com.example.project_enlishlearning.utils.notification.NotificationHelper
 import android.app.TimePickerDialog
 import androidx.compose.material3.TextButton
-import androidx.compose.ui.platform.LocalContext
+import com.example.project_enlishlearning.viewmodel.NotificationViewModel
 
 @Composable
 fun NotificationSettingsScreen(
