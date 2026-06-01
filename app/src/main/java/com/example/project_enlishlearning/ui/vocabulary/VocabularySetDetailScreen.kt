@@ -6,13 +6,17 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Book
+import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.UploadFile
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -20,10 +24,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -33,6 +39,10 @@ import com.example.project_enlishlearning.ui.theme.*
 import com.example.project_enlishlearning.viewmodel.VocabularyViewModel
 import com.example.project_enlishlearning.data.local.entity.VocabularySetEntity
 import com.example.project_enlishlearning.data.local.entity.VocabularyWordEntity
+import com.example.project_enlishlearning.viewmodel.ExportState
+import android.app.Application
+import com.example.project_enlishlearning.utils.file.FileExportHelper
+import kotlinx.coroutines.launch
 
 // Định nghĩa enum trạng thái để đồng bộ hiển thị màu sắc trên UI
 enum class VocabularyStatus(val label: String) {
@@ -47,9 +57,71 @@ fun VocabularySetDetailScreen(
     setId: Int, // Nhận ID của bộ từ vựng được truyền sang từ màn hình trước
     selected: BottomNavItem = BottomNavItem.Vocabulary,
     onBottomItemSelected: (BottomNavItem) -> Unit = {},
-    viewModel: VocabularyViewModel = viewModel()
+    viewModel: VocabularyViewModel = viewModel(
+        factory = ViewModelProvider.AndroidViewModelFactory.getInstance(
+            LocalContext.current.applicationContext as Application
+        )
+    )
 ) {
     var searchQuery by remember { mutableStateOf("") }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
+
+    val exportState by viewModel.exportState.collectAsState()
+
+    var pendingExport by remember { mutableStateOf<ExportPayload?>(null) }
+
+    val exportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("text/csv")
+    ) { uri ->
+        val payload = pendingExport
+        if (uri != null && payload != null) {
+            coroutineScope.launch {
+                try {
+                    FileExportHelper.writeCsvToUri(
+                        context = context,
+                        uri = uri,
+                        csvContent = payload.csvContent
+                    )
+                    snackbarHostState.showSnackbar(
+                        message = "Exported: ${payload.fileName}"
+                    )
+                } catch (exception: Exception) {
+                    snackbarHostState.showSnackbar(
+                        message = exception.message ?: "Export failed"
+                    )
+                } finally {
+                    pendingExport = null
+                    viewModel.resetExportState()
+                }
+            }
+        } else {
+            pendingExport = null
+            viewModel.resetExportState()
+        }
+    }
+
+    LaunchedEffect(exportState) {
+        when (exportState) {
+            is ExportState.Error -> {
+                val error = exportState as ExportState.Error
+                snackbarHostState.showSnackbar(
+                    message = error.message
+                )
+                viewModel.resetExportState()
+            }
+            is ExportState.Ready -> {
+                val ready = exportState as ExportState.Ready
+                pendingExport = ExportPayload(
+                    csvContent = ready.csvContent,
+                    fileName = ready.fileName
+                )
+                exportLauncher.launch(ready.fileName)
+            }
+            else -> Unit
+        }
+    }
 
     // 1. Tự động gọi Database để lấy danh sách từ vựng khi mở màn hình này lên
     LaunchedEffect(setId) {
@@ -77,7 +149,8 @@ fun VocabularySetDetailScreen(
                 selected = selected,
                 onItemSelected = onBottomItemSelected
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { innerPadding ->
         AppGradientBackground(
             modifier = Modifier
@@ -102,21 +175,50 @@ fun VocabularySetDetailScreen(
                 }
 
                 item {
-                    PrimaryButton(
-                        text = "Add Vocabulary",
-                        onClick = {
-                            navController.navigate("${Screen.AddVocabulary.route}/$setId")
-                        },
-                        leadingIcon = Icons.Default.Add,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-
-                item {
-                    VocabularySearchBar(
-                        value = searchQuery,
-                        onValueChange = { searchQuery = it }
-                    )
+                    AppCard(modifier = Modifier.fillMaxWidth()) {
+                        Column(modifier = Modifier.padding(AppDimens.CardPadding)) {
+                            AppSectionHeader(
+                                title = "Manage vocabulary",
+                                subtitle = "Add, import, export, or search"
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                SecondaryButton(
+                                    text = "Add",
+                                    onClick = {
+                                        navController.navigate("${Screen.AddVocabulary.route}/$setId")
+                                    },
+                                    leadingIcon = Icons.Default.Add,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                SecondaryButton(
+                                    text = "Import",
+                                    onClick = {
+                                        navController.navigate("${Screen.ImportVocabulary.route}/$setId")
+                                    },
+                                    leadingIcon = Icons.Default.UploadFile,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                PrimaryButton(
+                                    text = "Export",
+                                    onClick = {
+                                        viewModel.exportVocabularySet(setId, currentSet?.title)
+                                    },
+                                    leadingIcon = Icons.Default.FileDownload,
+                                    enabled = exportState !is ExportState.Loading,
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(12.dp))
+                            VocabularySearchBar(
+                                value = searchQuery,
+                                onValueChange = { searchQuery = it }
+                            )
+                        }
+                    }
                 }
 
                 // Lọc từ vựng theo ô tìm kiếm
@@ -215,6 +317,11 @@ fun SetHeaderCard(set: VocabularySetEntity) {
         }
     }
 }
+
+private data class ExportPayload(
+    val csvContent: String,
+    val fileName: String
+)
 
 @Composable
 fun VocabularySearchBar(value: String, onValueChange: (String) -> Unit) {

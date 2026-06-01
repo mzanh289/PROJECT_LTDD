@@ -40,9 +40,15 @@ interface VocabularyDao {
     @Query("SELECT * FROM vocabulary_words WHERE setId = :targetSetId")
     fun getWordsBySetId(targetSetId: Int): Flow<List<VocabularyWordEntity>>
 
+    @Query("SELECT * FROM vocabulary_words WHERE setId = :targetSetId")
+    suspend fun getWordsBySetIdOnce(targetSetId: Int): List<VocabularyWordEntity>
+
     // Thêm một từ vựng mới vào bộ từ vựng
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertWord(word: VocabularyWordEntity): Long
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertWords(words: List<VocabularyWordEntity>): List<Long>
 
     // Cập nhật thông tin từ vựng (Ví dụ: đổi trạng thái New -> Learning hoặc bấm thích/hủy thích)
     @Update
@@ -61,6 +67,9 @@ interface VocabularyDao {
     // Tăng số lượng từ vựng lên 1
     @Query("UPDATE vocabulary_sets SET totalWords = totalWords + 1 WHERE setId = :setId")
     suspend fun incrementTotalWords(setId: Int)
+
+    @Query("UPDATE vocabulary_sets SET totalWords = totalWords + :delta WHERE setId = :setId")
+    suspend fun incrementTotalWordsBy(setId: Int, delta: Int)
 
     // Giảm số lượng từ vựng đi 1 (đảm bảo không bị âm)
     @Query("UPDATE vocabulary_sets SET totalWords = totalWords - 1 WHERE setId = :setId AND totalWords > 0")
