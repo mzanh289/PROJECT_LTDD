@@ -38,6 +38,7 @@ import com.example.project_enlishlearning.ui.vocabulary.AddVocabularyScreen
 import com.example.project_enlishlearning.ui.vocabulary.CreateVocabularySetScreen
 import com.example.project_enlishlearning.ui.vocabulary.EditVocabularyScreen
 import com.example.project_enlishlearning.ui.vocabulary.EditVocabularySetScreen
+import com.example.project_enlishlearning.ui.vocabulary.ImportVocabularyScreen
 import com.example.project_enlishlearning.ui.vocabulary.VocabularySetDetailScreen
 import com.example.project_enlishlearning.ui.vocabulary.VocabularySetListScreen
 
@@ -185,6 +186,24 @@ fun AppNavGraph(
                 onBottomItemSelected = {
                     navigateToBottomTab(navController, it)
                 }
+            )
+        }
+
+        // Import Vocabulary
+        composable(
+            route = "${Screen.ImportVocabulary.route}/{setId}",
+            arguments = listOf(
+                navArgument("setId") {
+                    type = NavType.IntType
+                }
+            )
+        ) { backStackEntry ->
+            val setId =
+                backStackEntry.arguments?.getInt("setId") ?: 0
+
+            ImportVocabularyScreen(
+                navController = navController,
+                setId = setId
             )
         }
 

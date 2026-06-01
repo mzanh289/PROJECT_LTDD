@@ -6,17 +6,29 @@ import androidx.lifecycle.viewModelScope
 import com.example.project_enlishlearning.data.local.database.AppDatabase
 import com.example.project_enlishlearning.data.local.entity.VocabularySetEntity
 import com.example.project_enlishlearning.data.local.entity.VocabularyWordEntity
+import com.example.project_enlishlearning.data.importexport.ImportPreview
+import com.example.project_enlishlearning.data.importexport.ImportResult
+import com.example.project_enlishlearning.data.importexport.VocabularyExportFormatter
+import com.example.project_enlishlearning.data.importexport.VocabularyImportParser
+import com.example.project_enlishlearning.data.repository.VocabularyRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import com.example.project_enlishlearning.utils.FirebaseManager
+import java.io.ByteArrayInputStream
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 // Sử dụng AndroidViewModel(application) để lấy được Context mở Database
 class VocabularyViewModel(application: Application) : AndroidViewModel(application) {
 
-    // 1. Khởi tạo người quản lý kho (DAO)
-    private val dao = AppDatabase.getDatabase(application).vocabularyDao()
+    private val repository = VocabularyRepository(
+        vocabularyDao = AppDatabase.getDatabase(application).vocabularyDao(),
+        importParser = VocabularyImportParser(),
+        exportFormatter = VocabularyExportFormatter()
+    )
 
     // Lấy userId hiện tại từ Firebase
     private val currentUserId: String
@@ -33,6 +45,20 @@ class VocabularyViewModel(application: Application) : AndroidViewModel(applicati
     private val _currentEditWord = MutableStateFlow<VocabularyWordEntity?>(null)
     val currentEditWord: StateFlow<VocabularyWordEntity?> = _currentEditWord.asStateFlow()
 
+    private val _exportState = MutableStateFlow<ExportState>(ExportState.Idle)
+    val exportState: StateFlow<ExportState> = _exportState.asStateFlow()
+
+    private val _importPreviewState = MutableStateFlow<ImportPreviewState>(ImportPreviewState.Idle)
+    val importPreviewState: StateFlow<ImportPreviewState> = _importPreviewState.asStateFlow()
+
+    private val _importState = MutableStateFlow<ImportState>(ImportState.Idle)
+    val importState: StateFlow<ImportState> = _importState.asStateFlow()
+
+    private val _selectedImportFileName = MutableStateFlow<String?>(null)
+    val selectedImportFileName: StateFlow<String?> = _selectedImportFileName.asStateFlow()
+
+    private var cachedPreview: ImportPreview? = null
+
     init {
         // Vừa vào app là tự động gọi hàm lấy danh sách các Bộ từ vựng luôn
         loadAllSets()
@@ -46,7 +72,7 @@ class VocabularyViewModel(application: Application) : AndroidViewModel(applicati
 
         viewModelScope.launch {
             // Thay đổi để gọi hàm lấy danh sách theo userId
-            dao.getAllSetsByUserId(currentUserId).collect { sets ->
+            repository.getAllSetsByUserId(currentUserId).collect { sets ->
                 _vocabularySets.value = sets
             }
         }
@@ -62,7 +88,7 @@ class VocabularyViewModel(application: Application) : AndroidViewModel(applicati
                 title = title,
                 description = description
             )
-            dao.insertSet(newSet)
+            repository.insertSet(newSet)
         }
     }
 
@@ -74,7 +100,7 @@ class VocabularyViewModel(application: Application) : AndroidViewModel(applicati
     // Hàm gọi khi người dùng bấm vào xem 1 bộ cụ thể (truyền ID của bộ đó vào)
     fun loadWordsForSet(setId: Int) {
         viewModelScope.launch {
-            dao.getWordsBySetId(setId).collect { words ->
+            repository.getWordsBySetId(setId).collect { words ->
                 _wordsInSet.value = words
             }
         }
@@ -91,10 +117,10 @@ class VocabularyViewModel(application: Application) : AndroidViewModel(applicati
                 example = example
             )
             // 1. Thêm từ vựng vào Database
-            dao.insertWord(newWord)
+            repository.insertWord(newWord)
 
             // 2. Tăng số đếm totalWords của bộ từ vựng này lên 1
-            dao.incrementTotalWords(setId)
+            repository.incrementTotalWords(setId)
         }
     }
 
@@ -102,10 +128,10 @@ class VocabularyViewModel(application: Application) : AndroidViewModel(applicati
     fun deleteWord(word: VocabularyWordEntity) {
         viewModelScope.launch {
             // 1. Xóa từ vựng khỏi Database
-            dao.deleteWord(word)
+            repository.deleteWord(word)
 
             // 2. Giảm số đếm totalWords đi 1 dựa vào setId của từ vừa xóa
-            dao.decrementTotalWords(word.setId)
+            repository.decrementTotalWords(word.setId)
         }
     }
 
@@ -113,7 +139,7 @@ class VocabularyViewModel(application: Application) : AndroidViewModel(applicati
     fun toggleFavorite(word: VocabularyWordEntity) {
         viewModelScope.launch {
             val updatedWord = word.copy(isFavorite = !word.isFavorite)
-            dao.updateWord(updatedWord)
+            repository.updateWord(updatedWord)
         }
     }
 
@@ -129,13 +155,13 @@ class VocabularyViewModel(application: Application) : AndroidViewModel(applicati
                 totalWords = totalWords,
                 progress = progress
             )
-            dao.updateSet(updatedSet)
+            repository.updateSet(updatedSet)
         }
     }
 
     fun deleteVocabularySet(set: VocabularySetEntity) {
         viewModelScope.launch {
-            dao.deleteSet(set)
+            repository.deleteSet(set)
         }
     }
 
@@ -160,13 +186,109 @@ class VocabularyViewModel(application: Application) : AndroidViewModel(applicati
                 status = status,
                 isFavorite = isFavorite
             )
-            dao.updateWord(updatedWord)
+            repository.updateWord(updatedWord)
         }
     }
 
     fun loadWordById(wordId: Int) {
         viewModelScope.launch {
-            _currentEditWord.value = dao.getWordById(wordId)
+            _currentEditWord.value = repository.getWordById(wordId)
         }
     }
+
+    fun exportVocabularySet(setId: Int, setTitle: String?) {
+        viewModelScope.launch {
+            _exportState.value = ExportState.Loading
+            try {
+                val csvContent = repository.exportVocabularySet(setId)
+                val timeStamp = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+                val safeTitle = sanitizeFileName(setTitle ?: "VocabularySet")
+                val fileName = "${safeTitle}_$timeStamp.csv"
+                _exportState.value = ExportState.Ready(csvContent = csvContent, fileName = fileName)
+            } catch (exception: Exception) {
+                _exportState.value = ExportState.Error(exception.message ?: "Export failed")
+            }
+        }
+    }
+
+    fun resetExportState() {
+        _exportState.value = ExportState.Idle
+    }
+
+    fun previewImport(setId: Int, fileName: String, fileBytes: ByteArray?) {
+        viewModelScope.launch {
+            _importPreviewState.value = ImportPreviewState.Loading
+            _importState.value = ImportState.Idle
+            try {
+                _selectedImportFileName.value = fileName
+                if (fileBytes == null) {
+                    throw IllegalStateException("Unable to read selected file")
+                }
+                val preview = repository.previewImport(
+                    inputStream = ByteArrayInputStream(fileBytes),
+                    fileName = fileName
+                )
+                cachedPreview = preview
+                _importPreviewState.value = ImportPreviewState.Success(preview)
+            } catch (exception: Exception) {
+                _importPreviewState.value = ImportPreviewState.Error(
+                    exception.message ?: "Unable to parse selected file"
+                )
+            }
+        }
+    }
+
+    fun confirmImport(setId: Int) {
+        val preview = cachedPreview
+        if (preview == null) {
+            _importState.value = ImportState.Error("No preview data available")
+            return
+        }
+
+        viewModelScope.launch {
+            _importState.value = ImportState.Loading
+            try {
+                val result = repository.importFromPreview(setId, preview)
+                _importState.value = ImportState.Success(result)
+            } catch (exception: Exception) {
+                _importState.value = ImportState.Error(
+                    exception.message ?: "Import failed"
+                )
+            }
+        }
+    }
+
+    fun resetImportState() {
+        cachedPreview = null
+        _selectedImportFileName.value = null
+        _importPreviewState.value = ImportPreviewState.Idle
+        _importState.value = ImportState.Idle
+    }
+
+    private fun sanitizeFileName(input: String): String {
+        val trimmed = input.trim()
+        if (trimmed.isBlank()) return "VocabularySet"
+        return trimmed.replace(Regex("[^A-Za-z0-9_-]+"), "_")
+    }
+}
+
+sealed class ExportState {
+    data object Idle : ExportState()
+    data object Loading : ExportState()
+    data class Ready(val csvContent: String, val fileName: String) : ExportState()
+    data class Error(val message: String) : ExportState()
+}
+
+sealed class ImportPreviewState {
+    data object Idle : ImportPreviewState()
+    data object Loading : ImportPreviewState()
+    data class Success(val preview: ImportPreview) : ImportPreviewState()
+    data class Error(val message: String) : ImportPreviewState()
+}
+
+sealed class ImportState {
+    data object Idle : ImportState()
+    data object Loading : ImportState()
+    data class Success(val result: ImportResult) : ImportState()
+    data class Error(val message: String) : ImportState()
 }
