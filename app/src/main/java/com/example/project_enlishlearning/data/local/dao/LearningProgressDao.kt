@@ -5,7 +5,7 @@ import androidx.room.Query
 import androidx.room.Upsert
 import com.example.project_enlishlearning.data.local.entity.LearningProgressEntity
 import kotlinx.coroutines.flow.Flow
-
+import com.example.project_enlishlearning.data.local.entity.VocabularyWordEntity
 @Dao
 interface LearningProgressDao {
 
@@ -90,4 +90,17 @@ interface LearningProgressDao {
         userId: String,
         wordId: Long
     )
+    @Query("""
+    SELECT vw.*
+    FROM vocabulary_words vw
+    INNER JOIN learning_progress lp ON vw.wordId = lp.wordId
+    WHERE lp.userId = :userId
+    AND vw.setId = :setId
+    AND lp.status = 'LEARNING'
+    ORDER BY lp.updatedAt DESC
+""")
+    fun getReviewWordsBySet(
+        userId: String,
+        setId: Int
+    ): Flow<List<VocabularyWordEntity>>
 }

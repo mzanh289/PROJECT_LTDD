@@ -45,8 +45,14 @@ import com.example.project_enlishlearning.ui.theme.Secondary
 
 @Composable
 fun FlashcardResultScreen(
-    navController: NavController
+	navController: NavController,
+	setId: Int,
+	correct: Int,
+	wrong: Int,
+	total: Int
 ) {
+	val progress = if (total == 0) 0f else correct.toFloat() / total.toFloat()
+	val percent = (progress * 100).toInt()
 	Scaffold(
 		topBar = {
 			AppToolbar(
@@ -73,7 +79,7 @@ fun FlashcardResultScreen(
 				verticalArrangement = Arrangement.spacedBy(16.dp)
 			) {
 				item {
-					ScoreBadge()
+					ScoreBadge(progress = progress)
 				}
 
 				item {
@@ -94,14 +100,15 @@ fun FlashcardResultScreen(
 				item {
 					Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
 						ResultStatCard(
-							title = "Correct",
-							value = "22",
+							title = "Remembered",
+							value = "$correct",
 							color = Secondary,
 							modifier = Modifier.weight(1f)
 						)
+
 						ResultStatCard(
 							title = "Need Review",
-							value = "3",
+							value = "$wrong",
 							color = Accent,
 							modifier = Modifier.weight(1f)
 						)
@@ -111,14 +118,15 @@ fun FlashcardResultScreen(
 				item {
 					Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
 						ResultStatCard(
-							title = "Study Time",
-							value = "18m",
+							title = "Total Words",
+							value = "$total",
 							color = Primary,
 							modifier = Modifier.weight(1f)
 						)
+
 						ResultStatCard(
-							title = "XP Earned",
-							value = "+120",
+							title = "Score",
+							value = "$percent%",
 							color = Color(0xFFEC4899),
 							modifier = Modifier.weight(1f)
 						)
@@ -129,21 +137,25 @@ fun FlashcardResultScreen(
 					AppCard(modifier = Modifier.fillMaxWidth()) {
 						Column(modifier = Modifier.padding(AppDimens.CardPadding)) {
 							Text(
-								text = "Next Review Schedule",
-								style = MaterialTheme.typography.titleMedium
+								text = "Session Summary",
+								style = MaterialTheme.typography.titleMedium,
+								fontWeight = FontWeight.Bold
 							)
-							Spacer(modifier = Modifier.height(14.dp))
-							ReviewScheduleItem(
-								word = "Acquire",
-								nextReview = "Tomorrow - 09:00 AM"
+
+							Spacer(modifier = Modifier.height(12.dp))
+
+							Text(
+								text = "You remembered $correct out of $total words.",
+								style = MaterialTheme.typography.bodyMedium,
+								color = MaterialTheme.colorScheme.onSurfaceVariant
 							)
-							ReviewScheduleItem(
-								word = "Determine",
-								nextReview = "In 3 days"
-							)
-							ReviewScheduleItem(
-								word = "Significant",
-								nextReview = "Next week"
+
+							Spacer(modifier = Modifier.height(8.dp))
+
+							Text(
+								text = "$wrong words need more practice.",
+								style = MaterialTheme.typography.bodyMedium,
+								color = MaterialTheme.colorScheme.primary
 							)
 						}
 					}
@@ -153,7 +165,7 @@ fun FlashcardResultScreen(
 					PrimaryButton(
 						text = "Review Difficult Words",
 						onClick = {
-							navController.navigate(Screen.ReviewVocabulary.route)
+							navController.navigate(Screen.ReviewVocabulary.createRoute(setId))
 						},
 						modifier = Modifier.fillMaxWidth()
 					)
@@ -248,11 +260,11 @@ private fun ReviewScheduleItem(
 	}
 }
 
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun FlashcardResultScreenPreview() {
-	ProjectEnlishLearningTheme {
-		FlashcardResultScreen(navController = rememberNavController())
-	}
-}
+//@Preview(showBackground = true, showSystemUi = true)
+//@Composable
+//fun FlashcardResultScreenPreview() {
+//	ProjectEnlishLearningTheme {
+//		FlashcardResultScreen(navController = rememberNavController())
+//	}
+//}
 
