@@ -32,6 +32,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -49,6 +50,8 @@ import com.example.project_enlishlearning.viewmodel.ImportPreviewState
 import com.example.project_enlishlearning.viewmodel.ImportState
 import com.example.project_enlishlearning.viewmodel.VocabularyViewModel
 import com.example.project_enlishlearning.ui.theme.AppDimens
+import com.example.project_enlishlearning.utils.constants.WORD_ACTION_RESULT
+import com.example.project_enlishlearning.utils.constants.WordAction
 
 @Composable
 fun ImportVocabularyScreen(
@@ -243,7 +246,17 @@ fun ImportVocabularyScreen(
                         )
                         PrimaryButton(
                             text = "Import",
-                            onClick = { viewModel.confirmImport(setId) },
+                            onClick = {
+                                viewModel.confirmImport(setId)
+
+                                navController.previousBackStackEntry
+                                    ?.savedStateHandle
+                                    ?.set(
+                                        WORD_ACTION_RESULT,
+                                        WordAction.IMPORTED
+                                    )
+
+                                navController.popBackStack() },
                             enabled = previewState is ImportPreviewState.Success
                                     && importState !is ImportState.Loading,
                             modifier = Modifier.weight(1f)
@@ -258,25 +271,70 @@ fun ImportVocabularyScreen(
 @Composable
 private fun PreviewSummaryCard(preview: ImportPreview) {
     AppCard(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(AppDimens.CardPadding)) {
-            AppSectionHeader(
-                title = "Preview summary",
-                subtitle = preview.fileName
-            )
-            Spacer(modifier = Modifier.height(12.dp))
+        Column(
+            modifier = Modifier.padding(AppDimens.CardPadding)
+        ) {
             Text(
-                text = "Total rows: ${preview.totalRows}",
-                style = MaterialTheme.typography.bodyMedium
+                text = "Preview Summary",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
             )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
             Text(
-                text = "Valid rows: ${preview.validRows}",
-                style = MaterialTheme.typography.bodyMedium
+                text = "File name: ${preview.fileName}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Text(
-                text = "Invalid rows: ${preview.invalidRows}",
-                style = MaterialTheme.typography.bodyMedium
-            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                SummaryItem(
+                    label = "Total",
+                    value = preview.totalRows.toString()
+                )
+
+                SummaryItem(
+                    label = "Valid",
+                    value = preview.validRows.toString()
+                )
+
+                SummaryItem(
+                    label = "Invalid",
+                    value = preview.invalidRows.toString()
+                )
+            }
         }
+    }
+}
+
+@Composable
+private fun SummaryItem(
+    label: String,
+    value: String
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Text(
+            text = value,
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary
+        )
     }
 }
 

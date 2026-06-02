@@ -60,16 +60,31 @@ object AlarmScheduler {
         Log.d(TAG, "Trigger millis = $triggerMillis")
         Log.d(TAG, "Trigger time = ${Date(triggerMillis)}")
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            Log.d(TAG, "canScheduleExactAlarms = ${alarmManager.canScheduleExactAlarms()}")
+        val canScheduleExact = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            try {
+                alarmManager.canScheduleExactAlarms()
+            } catch (e: Exception) {
+                false
+            }
+        } else {
+            true
         }
 
-        // ===== ALARM =====
-        alarmManager.setExactAndAllowWhileIdle(
-            AlarmManager.RTC_WAKEUP,
-            triggerMillis,
-            pendingIntent
-        )
+        Log.d(TAG, "canScheduleExact = $canScheduleExact")
+
+        if (canScheduleExact) {
+            alarmManager.setExactAndAllowWhileIdle(
+                AlarmManager.RTC_WAKEUP,
+                triggerMillis,
+                pendingIntent
+            )
+        } else {
+            alarmManager.setAndAllowWhileIdle(
+                AlarmManager.RTC_WAKEUP,
+                triggerMillis,
+                pendingIntent
+            )
+        }
     }
 
     fun cancelReminder(

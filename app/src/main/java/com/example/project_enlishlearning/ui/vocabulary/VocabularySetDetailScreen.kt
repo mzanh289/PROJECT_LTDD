@@ -41,6 +41,8 @@ import com.example.project_enlishlearning.data.local.entity.VocabularySetEntity
 import com.example.project_enlishlearning.data.local.entity.VocabularyWordEntity
 import com.example.project_enlishlearning.viewmodel.ExportState
 import android.app.Application
+import com.example.project_enlishlearning.utils.constants.WORD_ACTION_RESULT
+import com.example.project_enlishlearning.utils.constants.WordAction
 import com.example.project_enlishlearning.utils.file.FileExportHelper
 import kotlinx.coroutines.launch
 
@@ -100,6 +102,40 @@ fun VocabularySetDetailScreen(
             pendingExport = null
             viewModel.resetExportState()
         }
+    }
+
+    LaunchedEffect(Unit) {
+        val result = navController.currentBackStackEntry
+            ?.savedStateHandle
+            ?.get<WordAction>(WORD_ACTION_RESULT)
+
+        when (result) {
+            WordAction.ADDED ->
+                snackbarHostState.showSnackbar(
+                    "Word added successfully"
+                )
+
+            WordAction.UPDATED ->
+                snackbarHostState.showSnackbar(
+                    "Word updated successfully"
+                )
+
+            WordAction.IMPORTED ->
+                snackbarHostState.showSnackbar(
+                    "Vocabulary imported successfully"
+                )
+
+            WordAction.EXPORTED ->
+                snackbarHostState.showSnackbar(
+                    "Vocabulary exported successfully"
+                )
+
+            else -> Unit
+        }
+
+        navController.currentBackStackEntry
+            ?.savedStateHandle
+            ?.remove<WordAction>(WORD_ACTION_RESULT)
     }
 
     LaunchedEffect(exportState) {
@@ -247,7 +283,13 @@ fun VocabularySetDetailScreen(
                             },
                             onDeleteClick = {
                                 // Gọi hàm xóa từ vựng vừa viết ở Bước 1
-                                    viewModel.deleteWord(item)
+                                viewModel.deleteWord(item)
+
+                                coroutineScope.launch {
+                                    snackbarHostState.showSnackbar(
+                                        "Word deleted successfully"
+                                    )
+                                }
                             },
                             onEditClick = {
                                 navController.navigate("edit_word/${item.wordId}")

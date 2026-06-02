@@ -36,6 +36,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.project_enlishlearning.ui.theme.AppDimens
 import com.example.project_enlishlearning.ui.theme.GradientEnd
@@ -102,7 +103,12 @@ fun PrimaryButton(
 			)
 			Spacer(modifier = Modifier.size(8.dp))
 		}
-		Text(text = text, style = MaterialTheme.typography.labelLarge)
+		Text(
+			text = text,
+			style = MaterialTheme.typography.labelLarge,
+			maxLines = 1,
+			overflow = TextOverflow.Ellipsis
+		)
 	}
 }
 
@@ -126,7 +132,12 @@ fun SecondaryButton(
 			)
 			Spacer(modifier = Modifier.size(8.dp))
 		}
-		Text(text = text, style = MaterialTheme.typography.labelLarge)
+		Text(
+			text = text,
+			style = MaterialTheme.typography.labelLarge,
+			maxLines = 1,
+			overflow = TextOverflow.Ellipsis
+		)
 	}
 }
 

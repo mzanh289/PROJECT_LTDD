@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.project_enlishlearning.data.local.database.AppDatabase
 import com.example.project_enlishlearning.data.repository.FlashcardRepository
+import com.example.project_enlishlearning.navigation.Screen
 import com.example.project_enlishlearning.utils.FirebaseManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,7 +19,8 @@ class ReviewVocabularyViewModel(
     private val database = AppDatabase.getDatabase(application)
 
     private val repository = FlashcardRepository(
-        learningProgressDao = database.learningProgressDao()
+        learningProgressDao = database.learningProgressDao(),
+        vocabularyDao = database.vocabularyDao()
     )
 
     private val currentUserId: String
@@ -31,10 +33,16 @@ class ReviewVocabularyViewModel(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
 
-            repository.getDifficultWordsBySet(
-                userId = currentUserId,
-                setId = setId
-            ).collect { words ->
+            val flow = if (setId == Screen.ReviewVocabulary.GLOBAL_DUE_REVIEW_SET_ID) {
+                repository.getDueReviewWords(userId = currentUserId)
+            } else {
+                repository.getDifficultWordsBySet(
+                    userId = currentUserId,
+                    setId = setId
+                )
+            }
+
+            flow.collect { words ->
                 _uiState.value = ReviewVocabularyUiState(
                     isLoading = false,
                     difficultWords = words

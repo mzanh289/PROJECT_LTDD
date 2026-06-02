@@ -17,6 +17,8 @@ import androidx.navigation.compose.rememberNavController
 import com.example.project_enlishlearning.ui.components.*
 import com.example.project_enlishlearning.ui.theme.AppDimens
 import com.example.project_enlishlearning.ui.theme.ProjectEnlishLearningTheme
+import com.example.project_enlishlearning.utils.constants.SET_ACTION_RESULT
+import com.example.project_enlishlearning.utils.constants.SetAction
 import com.example.project_enlishlearning.viewmodel.VocabularyViewModel
 
 @Composable
@@ -76,6 +78,11 @@ fun CreateVocabularySetScreen(
                                     if (setName.isNotBlank()) {
                                         // 1. Gọi ViewModel lưu vào DB
                                         viewModel.addVocabularySet(setName, description)
+
+                                        navController.previousBackStackEntry
+                                            ?.savedStateHandle
+                                            ?.set(SET_ACTION_RESULT, SetAction.CREATED)
+
                                         // 2. Quay trở lại màn hình danh sách thay vì navigate tràn lan
                                         navController.popBackStack()
                                     }

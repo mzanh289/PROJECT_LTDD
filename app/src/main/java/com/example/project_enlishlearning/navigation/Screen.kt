@@ -33,6 +33,7 @@ sealed class Screen(val route: String) {
 	data object VocabularySetDetail : Screen("vocabulary_set_detail")
 	data object EditVocabularySet : Screen("edit_vocabulary_set")
 	data object ReviewVocabulary : Screen("review_vocabulary") {
+		const val GLOBAL_DUE_REVIEW_SET_ID = -1
 		fun createRoute(setId: Int): String {
 			return "$route/$setId"
 		}

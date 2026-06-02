@@ -71,8 +71,33 @@ fun NotificationSettingsScreen(
 
     val context = LocalContext.current
     val dailyReminder by viewModel.dailyReminderEnabled.collectAsState()
+    val reviewReminder by viewModel.reviewReminderEnabled.collectAsState()
+    val pushNotification by viewModel.pushNotificationEnabled.collectAsState()
     val selectedHour by viewModel.selectedHour.collectAsState()
     val selectedMinute by viewModel.selectedMinute.collectAsState()
+
+    val permissionLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        contract = androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        // Handle result if necessary
+    }
+
+    val requestPermissionIfNecessary = { onPermissionChecked: () -> Unit ->
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            val hasPermission = androidx.core.content.ContextCompat.checkSelfPermission(
+                context,
+                android.Manifest.permission.POST_NOTIFICATIONS
+            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+
+            if (!hasPermission) {
+                permissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+            } else {
+                onPermissionChecked()
+            }
+        } else {
+            onPermissionChecked()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -114,9 +139,14 @@ fun NotificationSettingsScreen(
                         title = "Daily learning reminder",
                         subtitle = "Remind you to learn new vocabulary every day",
                         checked = dailyReminder,
-                        recommended = true,
-                        onCheckedChange = {
-                            viewModel.toggleDailyReminder(it)
+                        onCheckedChange = { checked ->
+                            if (checked) {
+                                requestPermissionIfNecessary {
+                                    viewModel.toggleDailyReminder(true)
+                                }
+                            } else {
+                                viewModel.toggleDailyReminder(false)
+                            }
                         }
                     )
 
@@ -139,9 +169,17 @@ fun NotificationSettingsScreen(
                     NotificationToggleItem(
                         icon = Icons.Default.Schedule,
                         title = "Review due reminder",
-                        subtitle = "Comming soon",
-                        checked = false,
-                        onCheckedChange = {}
+                        subtitle = "Notify you when vocabulary is due review",
+                        checked = reviewReminder,
+                        onCheckedChange = { checked ->
+                            if (checked) {
+                                requestPermissionIfNecessary {
+                                    viewModel.toggleReviewReminder(true)
+                                }
+                            } else {
+                                viewModel.toggleReviewReminder(false)
+                            }
+                        }
                     )
                 }
 
@@ -149,35 +187,19 @@ fun NotificationSettingsScreen(
                     NotificationToggleItem(
                         icon = Icons.Default.Notifications,
                         title = "Push Notification",
-                        subtitle = "Comming soon",
-                        checked = false,
-                        onCheckedChange = {}
-                    )
-
-                    HorizontalDivider(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 6.dp),
-                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
-                    )
-
-                    NotificationToggleItem(
-                        icon = Icons.Default.Email,
-                        title = "Email Notification",
-                        subtitle = "Comming soon",
-                        checked = false,
-                        onCheckedChange = {}
+                        subtitle = "Receive daily learning news and push notifications",
+                        checked = pushNotification,
+                        onCheckedChange = { checked ->
+                            if (checked) {
+                                requestPermissionIfNecessary {
+                                    viewModel.togglePushNotification(true)
+                                }
+                            } else {
+                                viewModel.togglePushNotification(false)
+                            }
+                        }
                     )
                 }
-
-                InfoFooter()
-
-                PrimaryButton(
-                    text = "Test Notification",
-                    onClick = {
-                        viewModel.testNotification()
-                    }
-                )
             }
         }
     }
@@ -379,16 +401,6 @@ private fun RecommendedBadge() {
             color = MaterialTheme.colorScheme.primary
         )
     }
-}
-
-@Composable
-private fun InfoFooter() {
-    Text(
-        text = "You can change this anytime in settings",
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(horizontal = 6.dp)
-    )
 }
 
 @Preview(showBackground = true, showSystemUi = true)

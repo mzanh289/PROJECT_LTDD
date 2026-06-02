@@ -26,6 +26,12 @@ class NotificationPreferences(
 
         private val REMINDER_MINUTE =
             intPreferencesKey("reminder_minute")
+
+        private val REVIEW_REMINDER =
+            booleanPreferencesKey("review_reminder")
+
+        private val PUSH_NOTIFICATION =
+            booleanPreferencesKey("push_notification")
     }
 
     val dailyReminderEnabled: Flow<Boolean> =
@@ -43,10 +49,19 @@ class NotificationPreferences(
             it[REMINDER_MINUTE] ?: 0
         }
 
+    val reviewReminderEnabled: Flow<Boolean> =
+        context.dataStore.data.map {
+            it[REVIEW_REMINDER] ?: true
+        }
+
+    val pushNotificationEnabled: Flow<Boolean> =
+        context.dataStore.data.map {
+            it[PUSH_NOTIFICATION] ?: true
+        }
+
     suspend fun saveDailyReminder(
         enabled: Boolean
     ) {
-
         context.dataStore.edit {
             it[DAILY_REMINDER] = enabled
         }
@@ -56,11 +71,25 @@ class NotificationPreferences(
         hour: Int,
         minute: Int
     ) {
-
         context.dataStore.edit {
-
             it[REMINDER_HOUR] = hour
             it[REMINDER_MINUTE] = minute
+        }
+    }
+
+    suspend fun saveReviewReminder(
+        enabled: Boolean
+    ) {
+        context.dataStore.edit {
+            it[REVIEW_REMINDER] = enabled
+        }
+    }
+
+    suspend fun savePushNotification(
+        enabled: Boolean
+    ) {
+        context.dataStore.edit {
+            it[PUSH_NOTIFICATION] = enabled
         }
     }
 }

@@ -19,8 +19,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Book
+import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
@@ -32,13 +34,17 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -63,7 +69,10 @@ import com.example.project_enlishlearning.ui.components.BottomNavigationBar
 import com.example.project_enlishlearning.ui.components.PrimaryButton
 import com.example.project_enlishlearning.ui.theme.AppDimens
 import com.example.project_enlishlearning.ui.theme.ProjectEnlishLearningTheme
+import com.example.project_enlishlearning.utils.constants.SET_ACTION_RESULT
+import com.example.project_enlishlearning.utils.constants.SetAction
 import com.example.project_enlishlearning.viewmodel.VocabularyViewModel
+import kotlinx.coroutines.launch
 
 @Composable
 fun VocabularySetListScreen(
@@ -78,14 +87,43 @@ fun VocabularySetListScreen(
 ) {
     var search by remember { mutableStateOf("") }
     val vocabularySets by viewModel.vocabularySets.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) {
+        val result = navController.currentBackStackEntry
+            ?.savedStateHandle
+            ?.get<SetAction>(SET_ACTION_RESULT)
+
+        when (result) {
+            SetAction.CREATED ->
+                snackbarHostState.showSnackbar(
+                    "Vocabulary set created successfully"
+                )
+
+            SetAction.UPDATED ->
+                snackbarHostState.showSnackbar(
+                    "Vocabulary set updated successfully"
+                )
+
+            else -> {}
+        }
+
+        navController.currentBackStackEntry
+            ?.savedStateHandle
+            ?.remove<SetAction>(SET_ACTION_RESULT)
+    }
 
     Scaffold(
+        snackbarHost = {
+            SnackbarHost(snackbarHostState)
+        },
         topBar = {
             AppToolbar(
                 title = "Vocabulary Sets",
                 subtitle = "Manage and review your vocabulary collections.",
-                navigationIcon = null,
-                onNavigationClick = null
+                navigationIcon = Icons.AutoMirrored.Filled.ArrowBack,
+                onNavigationClick = { navController.popBackStack() }
             )
         },
         bottomBar = {
@@ -127,23 +165,76 @@ fun VocabularySetListScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 item {
-                    AppTextField(
-                        value = search,
-                        onValueChange = { search = it },
-                        label = "Search",
-                        placeholder = "Search vocabulary set...",
-                        leadingIcon = Icons.Default.Search
-                    )
+                    AppCard(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        AppTextField(
+                            value = search,
+                            onValueChange = { search = it },
+                            label = "Search",
+                            placeholder = "Search vocabulary set...",
+                            leadingIcon = Icons.Default.Search,
+                            modifier = Modifier.padding(AppDimens.CardPadding)
+                        )
+                    }
                 }
 
-                items(filteredSets, key = { it.setId }) { item ->
-                    VocabularySetCard(
-                        item = item,
-                        navController = navController,
-                        onDeleteClick = { viewModel.deleteVocabularySet(item) }
-                    )
+                if (filteredSets.isEmpty()) {
+                    item {
+                        EmptySetListView(
+                            onCreateSet = {
+                                navController.navigate(Screen.CreateSet.route)
+                            }
+                        )
+                    }
+                } else {
+                    items(filteredSets, key = { it.setId }) { item ->
+                        VocabularySetCard(
+                            item = item,
+                            navController = navController,
+                            onDeleteClick = {
+                                viewModel.deleteVocabularySet(item)
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(
+                                        "Vocabulary set deleted successfully"
+                                    )
+                                }
+                            }
+                        )
+                    }
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun EmptySetListView(
+    onCreateSet: () -> Unit
+) {
+    AppCard(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(AppDimens.CardPadding),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                imageVector = Icons.Default.Folder,
+                contentDescription = null
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text("No vocabulary sets")
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            PrimaryButton(
+                text = "Create first set",
+                onClick = onCreateSet,
+                leadingIcon = Icons.Default.Add
+            )
         }
     }
 }

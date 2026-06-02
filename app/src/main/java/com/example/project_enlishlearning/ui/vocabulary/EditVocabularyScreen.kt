@@ -14,6 +14,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.project_enlishlearning.ui.components.*
+import com.example.project_enlishlearning.utils.constants.WORD_ACTION_RESULT
+import com.example.project_enlishlearning.utils.constants.WordAction
 import com.example.project_enlishlearning.viewmodel.VocabularyViewModel
 
 
@@ -95,6 +97,13 @@ fun EditVocabularyScreen(
                                                 status = word.status,
                                                 isFavorite = word.isFavorite
                                             )
+                                            navController.previousBackStackEntry
+                                                ?.savedStateHandle
+                                                ?.set(
+                                                    WORD_ACTION_RESULT,
+                                                    WordAction.UPDATED
+                                                )
+
                                             navController.popBackStack()
                                         }
                                     }

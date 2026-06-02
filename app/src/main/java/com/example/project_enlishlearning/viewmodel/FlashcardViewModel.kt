@@ -5,6 +5,8 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.project_enlishlearning.data.local.database.AppDatabase
 import com.example.project_enlishlearning.data.local.entity.VocabularyWordEntity
+import com.example.project_enlishlearning.data.repository.FlashcardRepository
+import com.example.project_enlishlearning.navigation.Screen
 import com.example.project_enlishlearning.utils.FirebaseManager
 import com.example.project_enlishlearning.utils.ReviewRating
 import com.example.project_enlishlearning.utils.Sm2Calculator
@@ -18,8 +20,10 @@ class FlashcardViewModel(
 ) : AndroidViewModel(application) {
 
     private val database = AppDatabase.getDatabase(application)
-    private val vocabularyDao = database.vocabularyDao()
-    private val learningProgressDao = database.learningProgressDao()
+    private val repository = FlashcardRepository(
+        learningProgressDao = database.learningProgressDao(),
+        vocabularyDao = database.vocabularyDao()
+    )
 
     private val currentUserId: String
         get() = FirebaseManager.auth.currentUser?.uid ?: "local_user"
@@ -28,12 +32,11 @@ class FlashcardViewModel(
     val uiState: StateFlow<FlashcardUiState> = _uiState.asStateFlow()
 
     // LOAD FLASHCARD THƯỜNG: HỌC TOÀN BỘ TỪ TRONG BỘ
-
     fun loadFlashcards(setId: Int) {
         viewModelScope.launch {
             resetLearningState()
 
-            vocabularyDao.getWordsBySetId(setId).collect { words ->
+            repository.getWordsBySetId(setId).collect { words ->
                 _uiState.value = _uiState.value.copy(
                     words = words,
                     isLoading = false
@@ -42,17 +45,21 @@ class FlashcardViewModel(
         }
     }
 
-    // LOAD FLASHCARD REVIEW: CHỈ HỌC LẠI CÁC TỪ KHÓ
-    // Các từ khó đang được lấy theo status = LEARNING trong DAO
-
+    // LOAD FLASHCARD REVIEW: CHỈ HỌC LẠI CÁC TỪ KHÓ / TỪ ĐẾN HẠN
     fun loadReviewFlashcards(setId: Int) {
         viewModelScope.launch {
             resetLearningState()
 
-            learningProgressDao.getReviewWordsBySet(
-                userId = currentUserId,
-                setId = setId
-            ).collect { words ->
+            val flow = if (setId == Screen.ReviewVocabulary.GLOBAL_DUE_REVIEW_SET_ID) {
+                repository.getDueReviewWords(userId = currentUserId)
+            } else {
+                repository.getDifficultWordsBySet(
+                    userId = currentUserId,
+                    setId = setId
+                )
+            }
+
+            flow.collect { words ->
                 _uiState.value = _uiState.value.copy(
                     words = words,
                     isLoading = false
@@ -73,7 +80,6 @@ class FlashcardViewModel(
     }
 
     // LẬT THẺ
-
     fun flipCard() {
         _uiState.value = _uiState.value.copy(
             isFlipped = !_uiState.value.isFlipped
@@ -81,7 +87,6 @@ class FlashcardViewModel(
     }
 
     // NGƯỜI DÙNG CHỌN AGAIN / HARD / GOOD / EASY
-
     fun answerCurrentWord(rating: ReviewRating) {
         val currentWord = _uiState.value.currentWord ?: return
 
@@ -105,12 +110,13 @@ class FlashcardViewModel(
             goToNextWord()
         }
     }
+
     // CẬP NHẬT LEARNING PROGRESS BẰNG SM2
     private suspend fun updateLearningProgress(
         word: VocabularyWordEntity,
         rating: ReviewRating
     ): String {
-        val oldProgress = learningProgressDao.getProgressByWord(
+        val oldProgress = repository.getProgressByWord(
             userId = currentUserId,
             wordId = word.wordId
         )
@@ -122,26 +128,22 @@ class FlashcardViewModel(
             rating = rating
         )
 
-        learningProgressDao.upsertProgress(newProgress)
+        repository.upsertProgress(newProgress)
 
         return newProgress.status
     }
 
     // CẬP NHẬT STATUS CỦA TỪ
-    // Dùng status do Sm2Calculator tính ra:
-    // LEARNING / REVIEWING / MASTERED
     private suspend fun updateWordStatus(
         word: VocabularyWordEntity,
         newStatus: String
     ) {
-        vocabularyDao.updateWord(
+        repository.updateWord(
             word.copy(status = newStatus)
         )
     }
 
     // ĐẾM KẾT QUẢ PHIÊN HỌC
-    // Again / Hard  -> Need Review
-    // Good / Easy   -> Remembered
     private fun updateCount(rating: ReviewRating) {
         val currentState = _uiState.value
 
@@ -155,7 +157,6 @@ class FlashcardViewModel(
     }
 
     // CHUYỂN SANG TỪ TIẾP THEO
-
     private fun goToNextWord() {
         val currentState = _uiState.value
         val nextIndex = currentState.currentIndex + 1

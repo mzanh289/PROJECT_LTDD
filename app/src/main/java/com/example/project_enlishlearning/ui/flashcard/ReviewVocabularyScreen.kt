@@ -50,11 +50,15 @@ fun ReviewVocabularyScreen(
     val uiState by viewModel.uiState.collectAsState()
     val reviewWords = uiState.difficultWords
 
+    val isDueReviewMode = setId == Screen.ReviewVocabulary.GLOBAL_DUE_REVIEW_SET_ID
+    val title = if (isDueReviewMode) "Global Due Review" else "Review Vocabulary"
+    val subtitle = if (isDueReviewMode) "Review all due words across all sets" else "Spaced repetition learning session"
+
     Scaffold(
         topBar = {
             AppToolbar(
-                title = "Review Vocabulary",
-                subtitle = "Spaced repetition learning session",
+                title = title,
+                subtitle = subtitle,
                 navigationIcon = Icons.Default.Replay,
                 onNavigationClick = { navController.popBackStack() }
             )
@@ -78,7 +82,7 @@ fun ReviewVocabularyScreen(
                     Column(modifier = Modifier.padding(AppDimens.CardPadding)) {
 
                         Text(
-                            text = "Today's Review",
+                            text = if (isDueReviewMode) "Due Review" else "Today's Review",
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold
                         )
@@ -86,7 +90,11 @@ fun ReviewVocabularyScreen(
                         Spacer(modifier = Modifier.height(8.dp))
 
                         Text(
-                            text = "You have ${reviewWords.size} words to review today.",
+                            text = if (isDueReviewMode) {
+                                "You have ${reviewWords.size} words due for review."
+                            } else {
+                                "You have ${reviewWords.size} words to review today."
+                            },
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
 

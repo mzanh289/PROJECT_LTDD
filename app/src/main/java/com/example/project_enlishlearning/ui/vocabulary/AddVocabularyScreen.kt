@@ -17,6 +17,8 @@ import androidx.navigation.compose.rememberNavController
 import com.example.project_enlishlearning.ui.components.*
 import com.example.project_enlishlearning.ui.theme.AppDimens
 import com.example.project_enlishlearning.ui.theme.ProjectEnlishLearningTheme
+import com.example.project_enlishlearning.utils.constants.WORD_ACTION_RESULT
+import com.example.project_enlishlearning.utils.constants.WordAction
 import com.example.project_enlishlearning.viewmodel.VocabularyViewModel
 
 @Composable
@@ -99,6 +101,13 @@ fun AddVocabularyScreen(
                                             meaning = meaning,
                                             example = example
                                         )
+
+                                        navController.previousBackStackEntry
+                                            ?.savedStateHandle
+                                            ?.set(
+                                                WORD_ACTION_RESULT,
+                                                WordAction.ADDED
+                                            )
                                         navController.popBackStack() // Lưu xong quay về màn chi tiết bộ
                                     }
                                 },

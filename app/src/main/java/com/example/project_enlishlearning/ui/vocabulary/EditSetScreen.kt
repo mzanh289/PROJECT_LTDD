@@ -14,6 +14,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.project_enlishlearning.ui.components.*
 import com.example.project_enlishlearning.ui.theme.AppDimens
+import com.example.project_enlishlearning.utils.constants.SET_ACTION_RESULT
+import com.example.project_enlishlearning.utils.constants.SetAction
 import com.example.project_enlishlearning.viewmodel.VocabularyViewModel
 
 @Composable
@@ -90,6 +92,11 @@ fun EditVocabularySetScreen(
                                             totalWords = currentSet.totalWords,
                                             progress = currentSet.progress
                                         )
+
+                                        navController.previousBackStackEntry
+                                            ?.savedStateHandle
+                                            ?.set(SET_ACTION_RESULT, SetAction.UPDATED)
+
                                         navController.popBackStack() // Cập nhật xong quay lại màn hình cũ
                                     }
                                 },

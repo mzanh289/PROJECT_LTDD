@@ -71,6 +71,30 @@ interface LearningProgressDao {
     ): Flow<Int>
 
     @Query("""
+        SELECT COUNT(*) FROM learning_progress 
+        WHERE userId = :userId 
+        AND nextReviewAt <= :currentTime
+        AND status != 'MASTERED'
+    """)
+    suspend fun getReviewDueCount(
+        userId: String,
+        currentTime: Long = System.currentTimeMillis()
+    ): Int
+
+    @Query("""
+        SELECT vw.* FROM vocabulary_words vw
+        INNER JOIN learning_progress lp ON vw.wordId = lp.wordId
+        WHERE lp.userId = :userId
+        AND lp.nextReviewAt <= :currentTime
+        AND lp.status != 'MASTERED'
+        ORDER BY lp.updatedAt DESC
+    """)
+    fun getDueReviewWords(
+        userId: String,
+        currentTime: Long = System.currentTimeMillis()
+    ): Flow<List<VocabularyWordEntity>>
+
+    @Query("""
         SELECT SUM(correctCount) FROM learning_progress 
         WHERE userId = :userId
     """)
