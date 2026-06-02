@@ -215,25 +215,50 @@ fun EmptySetListView(
     AppCard(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(AppDimens.CardPadding),
+                .padding(AppDimens.CardPadding)
+                .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Icon(
-                imageVector = Icons.Default.Folder,
-                contentDescription = null
-            )
+
+            Box(
+                modifier = Modifier
+                    .size(64.dp)
+                    .background(
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                        CircleShape
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Folder,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            Text("No vocabulary sets")
+            Text(
+                text = "No vocabulary sets",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(6.dp))
+
+            Text(
+                text = "Create your first set to organize your vocabulary.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
 
             PrimaryButton(
                 text = "Create first set",
                 onClick = onCreateSet,
-                leadingIcon = Icons.Default.Add
+                leadingIcon = Icons.Default.Add,
+                modifier = Modifier.fillMaxWidth()
             )
         }
     }

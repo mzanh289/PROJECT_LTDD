@@ -20,13 +20,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Alarm
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.Schedule
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -37,7 +34,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -50,16 +46,14 @@ import com.example.project_enlishlearning.ui.components.AppToolbar
 import com.example.project_enlishlearning.ui.components.BottomNavItem
 import com.example.project_enlishlearning.ui.components.BottomNavigationBar
 import com.example.project_enlishlearning.ui.theme.AppDimens
-import com.example.project_enlishlearning.ui.theme.GradientEnd
-import com.example.project_enlishlearning.ui.theme.GradientStart
 import com.example.project_enlishlearning.ui.theme.ProjectEnlishLearningTheme
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.platform.LocalContext
-import com.example.project_enlishlearning.ui.components.PrimaryButton
 import android.app.TimePickerDialog
 import androidx.compose.material3.TextButton
 import com.example.project_enlishlearning.viewmodel.NotificationViewModel
+import java.util.Locale
 
 @Composable
 fun NotificationSettingsScreen(
@@ -78,8 +72,7 @@ fun NotificationSettingsScreen(
 
     val permissionLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
         contract = androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        // Handle result if necessary
+    ) {
     }
 
     val requestPermissionIfNecessary = { onPermissionChecked: () -> Unit ->
@@ -241,6 +234,7 @@ fun NotificationTimeCard(
 
                 Text(
                     text = String.format(
+                        Locale.US,
                         "%02d:%02d",
                         hour,
                         minute
@@ -348,7 +342,7 @@ fun NotificationToggleItem(
                     text = title,
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.weight(1f, fill = false) // QUAN TRỌNG: Giúp chữ tự ngắt dòng nếu quá dài chứ không đẩy badge ra ngoài screen
+                    modifier = Modifier.weight(1f, fill = false)
                 )
 
                 if (recommended) {

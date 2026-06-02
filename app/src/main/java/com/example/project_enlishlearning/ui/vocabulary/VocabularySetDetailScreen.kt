@@ -23,7 +23,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -220,7 +219,7 @@ fun VocabularySetDetailScreen(
                             Spacer(modifier = Modifier.height(12.dp))
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                     SecondaryButton(
                                         text = "Add",
@@ -228,7 +227,7 @@ fun VocabularySetDetailScreen(
                                             navController.navigate("${Screen.AddVocabulary.route}/$setId")
                                         },
                                         leadingIcon = Icons.Default.Add,
-                                        modifier = Modifier.weight(1f).widthIn(min = 0.dp)
+                                        modifier = Modifier.weight(1f)
                                     )
 
                                     SecondaryButton(
@@ -237,7 +236,7 @@ fun VocabularySetDetailScreen(
                                             navController.navigate("${Screen.ImportVocabulary.route}/$setId")
                                         },
                                         leadingIcon = Icons.Default.UploadFile,
-                                        modifier = Modifier.weight(1f).widthIn(min = 0.dp)
+                                        modifier = Modifier.weight(1f)
                                     )
 
                                     PrimaryButton(
@@ -247,7 +246,7 @@ fun VocabularySetDetailScreen(
                                         },
                                         leadingIcon = Icons.Default.FileDownload,
                                         enabled = exportState !is ExportState.Loading,
-                                        modifier = Modifier.weight(1f).widthIn(min = 0.dp)
+                                        modifier = Modifier.weight(1f)
                                     )
                             }
                             Spacer(modifier = Modifier.height(12.dp))
