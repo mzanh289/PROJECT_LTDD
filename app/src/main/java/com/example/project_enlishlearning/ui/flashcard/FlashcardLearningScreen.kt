@@ -98,14 +98,16 @@ fun FlashcardLearningScreen(
     val progress = uiState.progress
     LaunchedEffect(uiState.isFinished) {
         if (uiState.isFinished) {
-            navController.navigate(
-                Screen.FlashcardResult.createRoute(
-                    setId = setId,
-                    correct = uiState.correctCount,
-                    wrong = uiState.wrongCount,
-                    total = uiState.totalWords
+            viewModel.saveSessionResult {
+                navController.navigate(
+                    Screen.FlashcardResult.createRoute(
+                        setId = setId,
+                        correct = uiState.correctCount,
+                        wrong = uiState.wrongCount,
+                        total = uiState.totalWords
+                    )
                 )
-            )
+            }
         }
     }
 
@@ -286,14 +288,16 @@ fun FlashcardLearningScreen(
 
                     Button(
                         onClick = {
-                            navController.navigate(
-                                Screen.FlashcardResult.createRoute(
-                                    setId = setId,
-                                    correct = uiState.correctCount,
-                                    wrong = uiState.wrongCount,
-                                    total = uiState.totalWords
+                            viewModel.saveSessionResult {
+                                navController.navigate(
+                                    Screen.FlashcardResult.createRoute(
+                                        setId = setId,
+                                        correct = uiState.correctCount,
+                                        wrong = uiState.wrongCount,
+                                        total = uiState.totalWords
+                                    )
                                 )
-                            )
+                            }
                         },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(16.dp),

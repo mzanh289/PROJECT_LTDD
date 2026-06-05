@@ -57,9 +57,9 @@ object Sm2Calculator {
         }
 
         val status = when {
-            needsReview -> "LEARNING"
             newRepetition >= 5 -> "MASTERED"
-            newRepetition >= 2 -> "REVIEWING"
+            rating == ReviewRating.AGAIN || rating == ReviewRating.HARD -> "LEARNING"
+            rating == ReviewRating.GOOD || rating == ReviewRating.EASY -> "REVIEWING"
             else -> "LEARNING"
         }
 

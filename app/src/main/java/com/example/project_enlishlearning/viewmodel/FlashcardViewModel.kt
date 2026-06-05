@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.first
 
 class FlashcardViewModel(
     application: Application
@@ -36,12 +37,11 @@ class FlashcardViewModel(
         viewModelScope.launch {
             resetLearningState()
 
-            repository.getWordsBySetId(setId).collect { words ->
-                _uiState.value = _uiState.value.copy(
-                    words = words,
-                    isLoading = false
-                )
-            }
+            val words = repository.getWordsBySetId(setId).first()
+            _uiState.value = _uiState.value.copy(
+                words = words,
+                isLoading = false
+            )
         }
     }
 
@@ -59,12 +59,11 @@ class FlashcardViewModel(
                 )
             }
 
-            flow.collect { words ->
-                _uiState.value = _uiState.value.copy(
-                    words = words,
-                    isLoading = false
-                )
-            }
+            val words = flow.first()
+            _uiState.value = _uiState.value.copy(
+                words = words,
+                isLoading = false
+            )
         }
     }
 
@@ -90,25 +89,17 @@ class FlashcardViewModel(
     fun answerCurrentWord(rating: ReviewRating) {
         val currentWord = _uiState.value.currentWord ?: return
 
-        viewModelScope.launch {
-            // 1. Tính SM2 và lưu LearningProgress
-            val newStatus = updateLearningProgress(
-                word = currentWord,
-                rating = rating
-            )
+        // 1. Chỉ lưu tạm đáp án, chưa lưu Room
+        savePendingAnswer(
+            word = currentWord,
+            rating = rating
+        )
 
-            // 2. Cập nhật status của từ vựng theo kết quả SM2
-            updateWordStatus(
-                word = currentWord,
-                newStatus = newStatus
-            )
+        // 2. Đếm remembered / need review
+        updateCount(rating)
 
-            // 3. Cập nhật số từ remembered / need review trên UI
-            updateCount(rating)
-
-            // 4. Qua từ tiếp theo hoặc kết thúc
-            goToNextWord()
-        }
+        // 3. Qua từ tiếp theo
+        goToNextWord()
     }
 
     // CẬP NHẬT LEARNING PROGRESS BẰNG SM2
@@ -171,6 +162,43 @@ class FlashcardViewModel(
                 currentIndex = nextIndex,
                 isFlipped = false
             )
+        }
+    }
+    // Các Hàm lưu
+    private fun savePendingAnswer(
+        word: VocabularyWordEntity,
+        rating: ReviewRating
+    ) {
+        val currentState = _uiState.value
+
+        val newAnswer = FlashcardAnswer(
+            word = word,
+            rating = rating
+        )
+
+        _uiState.value = currentState.copy(
+            pendingAnswers = currentState.pendingAnswers + newAnswer
+        )
+    }
+    fun saveSessionResult(
+        onDone: () -> Unit = {}
+    ) {
+        viewModelScope.launch {
+            val answers = _uiState.value.pendingAnswers
+
+            answers.forEach { answer ->
+                val newStatus = updateLearningProgress(
+                    word = answer.word,
+                    rating = answer.rating
+                )
+
+                updateWordStatus(
+                    word = answer.word,
+                    newStatus = newStatus
+                )
+            }
+
+            onDone()
         }
     }
 }
