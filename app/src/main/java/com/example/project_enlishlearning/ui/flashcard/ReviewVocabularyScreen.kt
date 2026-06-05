@@ -6,7 +6,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Replay
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -59,7 +59,7 @@ fun ReviewVocabularyScreen(
             AppToolbar(
                 title = title,
                 subtitle = subtitle,
-                navigationIcon = Icons.Default.Replay,
+                Icons.AutoMirrored.Filled.ArrowBack,
                 onNavigationClick = { navController.popBackStack() }
             )
         }

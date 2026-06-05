@@ -32,8 +32,11 @@ class FlashcardViewModel(
     private val _uiState = MutableStateFlow(FlashcardUiState())
     val uiState: StateFlow<FlashcardUiState> = _uiState.asStateFlow()
 
+    private var currentSetId: Int = 0
+
     // LOAD FLASHCARD THƯỜNG: HỌC TOÀN BỘ TỪ TRONG BỘ
     fun loadFlashcards(setId: Int) {
+        currentSetId = setId
         viewModelScope.launch {
             resetLearningState()
 
@@ -47,6 +50,7 @@ class FlashcardViewModel(
 
     // LOAD FLASHCARD REVIEW: CHỈ HỌC LẠI CÁC TỪ KHÓ / TỪ ĐẾN HẠN
     fun loadReviewFlashcards(setId: Int) {
+        currentSetId = setId
         viewModelScope.launch {
             resetLearningState()
 
@@ -198,7 +202,38 @@ class FlashcardViewModel(
                 )
             }
 
+            if (
+                currentSetId != 0 &&
+                currentSetId != Screen.ReviewVocabulary.GLOBAL_DUE_REVIEW_SET_ID
+            ) {
+                repository.updateSetProgress(
+                    userId = currentUserId,
+                    setId = currentSetId
+                )
+            }
+
+            _uiState.value = _uiState.value.copy(
+                pendingAnswers = emptyList()
+            )
+
             onDone()
+        }
+    }
+
+    fun loadContinueFlashcards(setId: Int) {
+        currentSetId = setId
+        viewModelScope.launch {
+            resetLearningState()
+
+            val words = repository.getUnlearnedWordsBySet(
+                userId = currentUserId,
+                setId = setId
+            ).first()
+
+            _uiState.value = _uiState.value.copy(
+                words = words,
+                isLoading = false
+            )
         }
     }
 }

@@ -79,4 +79,14 @@ interface VocabularyDao {
 
     @Query("SELECT COUNT(*) FROM vocabulary_words")
     fun countVocabularyWords(): Flow<Int>
+
+    @Query("""
+    UPDATE vocabulary_sets
+    SET progress = :progress
+    WHERE setId = :setId
+""")
+    suspend fun updateSetProgress(
+        setId: Int,
+        progress: Int
+    )
 }

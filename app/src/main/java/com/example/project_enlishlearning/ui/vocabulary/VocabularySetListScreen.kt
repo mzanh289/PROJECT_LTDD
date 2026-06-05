@@ -73,6 +73,7 @@ import com.example.project_enlishlearning.utils.constants.SET_ACTION_RESULT
 import com.example.project_enlishlearning.utils.constants.SetAction
 import com.example.project_enlishlearning.viewmodel.VocabularyViewModel
 import kotlinx.coroutines.launch
+import com.example.project_enlishlearning.ui.components.SecondaryButton
 
 @Composable
 fun VocabularySetListScreen(
@@ -192,6 +193,34 @@ fun VocabularySetListScreen(
                         VocabularySetCard(
                             item = item,
                             navController = navController,
+                            onContinueClick = {
+                                when {
+                                    item.progress <= 0 -> {
+                                        scope.launch {
+                                            snackbarHostState.showSnackbar(
+                                                "Bạn chưa học bộ này. Hãy bắt đầu học trước."
+                                            )
+                                        }
+                                    }
+
+                                    item.progress >= 100 -> {
+                                        scope.launch {
+                                            snackbarHostState.showSnackbar(
+                                                "Bạn đã học xong bộ này rồi. Nếu muốn học lại, hãy bấm Start New Learning."
+                                            )
+                                        }
+                                    }
+
+                                    else -> {
+                                        navController.navigate(
+                                            Screen.FlashcardLearning.createRoute(
+                                                setId = item.setId,
+                                                mode = "continue"
+                                            )
+                                        )
+                                    }
+                                }
+                            },
                             onDeleteClick = {
                                 viewModel.deleteVocabularySet(item)
                                 scope.launch {
@@ -268,6 +297,7 @@ fun EmptySetListView(
 private fun VocabularySetCard(
     item: VocabularySetEntity,
     navController: NavController,
+    onContinueClick: () -> Unit,
     onDeleteClick: () -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -390,9 +420,27 @@ private fun VocabularySetCard(
             Spacer(modifier = Modifier.height(16.dp))
 
             PrimaryButton(
-                text = "Start Learning",
+                text = "Start New Learning",
                 onClick = {
                     navController.navigate("${Screen.NewWordsPreview.route}/${item.setId}")
+                },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+
+            SecondaryButton(
+                text = "Continue Learning",
+                onClick = onContinueClick,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+
+            SecondaryButton(
+                text = "Review Difficult Words",
+                onClick = {
+                    navController.navigate(
+                        Screen.ReviewVocabulary.createRoute(item.setId)
+                    )
                 },
                 modifier = Modifier.fillMaxWidth()
             )

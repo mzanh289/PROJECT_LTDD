@@ -81,10 +81,10 @@ fun FlashcardLearningScreen(
     )
 ) {
     LaunchedEffect(setId, mode) {
-        if (mode == "review") {
-            viewModel.loadReviewFlashcards(setId)
-        } else {
-            viewModel.loadFlashcards(setId)
+        when (mode) {
+            "review" -> viewModel.loadReviewFlashcards(setId)
+            "continue" -> viewModel.loadContinueFlashcards(setId)
+            else -> viewModel.loadFlashcards(setId)
         }
     }
 
@@ -126,7 +126,36 @@ fun FlashcardLearningScreen(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            Text("Chưa có từ vựng trong bộ này")
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.padding(24.dp)
+            ) {
+                Text(
+                    text = when (mode) {
+                        "review" -> "Không có từ cần ôn tập."
+                        else -> "Chưa có từ vựng trong bộ này."
+                    },
+                    style = MaterialTheme.typography.titleMedium,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Button(
+                    onClick = {
+                        navController.popBackStack()
+                    },
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    )
+                ) {
+                    Text(
+                        text = "Quay lại",
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
         }
         return
     }

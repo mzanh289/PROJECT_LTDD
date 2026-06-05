@@ -127,4 +127,40 @@ interface LearningProgressDao {
         userId: String,
         setId: Int
     ): Flow<List<VocabularyWordEntity>>
+    // hàm dùng để continue
+
+    @Query("""
+    SELECT COUNT(*)
+    FROM vocabulary_words
+    WHERE setId = :setId
+""")
+    suspend fun countTotalWordsBySet(setId: Int): Int
+
+    @Query("""
+    SELECT COUNT(*)
+    FROM vocabulary_words w
+    INNER JOIN learning_progress p
+        ON w.wordId = p.wordId
+    WHERE w.setId = :setId
+    AND p.userId = :userId
+    AND p.lastReviewedAt > 0
+""")
+    suspend fun countLearnedWordsBySet(
+        userId: String,
+        setId: Int
+    ): Int
+
+    @Query("""
+    SELECT w.*
+    FROM vocabulary_words w
+    LEFT JOIN learning_progress p
+        ON w.wordId = p.wordId
+        AND p.userId = :userId
+    WHERE w.setId = :setId
+    AND p.progressId IS NULL
+""")
+    fun getUnlearnedWordsBySet(
+        userId: String,
+        setId: Int
+    ): Flow<List<VocabularyWordEntity>>
 }

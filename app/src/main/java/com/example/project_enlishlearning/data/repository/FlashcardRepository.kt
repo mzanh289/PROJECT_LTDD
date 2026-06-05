@@ -45,4 +45,34 @@ class FlashcardRepository(
     suspend fun getReviewDueCount(userId: String): Int {
         return learningProgressDao.getReviewDueCount(userId)
     }
+    //continue set
+    fun getUnlearnedWordsBySet(
+        userId: String,
+        setId: Int
+    ): Flow<List<VocabularyWordEntity>> {
+        return learningProgressDao.getUnlearnedWordsBySet(userId, setId)
+    }
+
+    suspend fun updateSetProgress(
+        userId: String,
+        setId: Int
+    ) {
+        val totalWords = learningProgressDao.countTotalWordsBySet(setId)
+
+        val learnedWords = learningProgressDao.countLearnedWordsBySet(
+            userId = userId,
+            setId = setId
+        )
+
+        val progress = if (totalWords == 0) {
+            0
+        } else {
+            ((learnedWords.toFloat() / totalWords.toFloat()) * 100).toInt()
+        }
+
+        vocabularyDao.updateSetProgress(
+            setId = setId,
+            progress = progress
+        )
+    }
 }
