@@ -20,13 +20,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Alarm
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.Schedule
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -35,13 +32,8 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -54,20 +46,51 @@ import com.example.project_enlishlearning.ui.components.AppToolbar
 import com.example.project_enlishlearning.ui.components.BottomNavItem
 import com.example.project_enlishlearning.ui.components.BottomNavigationBar
 import com.example.project_enlishlearning.ui.theme.AppDimens
-import com.example.project_enlishlearning.ui.theme.GradientEnd
-import com.example.project_enlishlearning.ui.theme.GradientStart
 import com.example.project_enlishlearning.ui.theme.ProjectEnlishLearningTheme
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.platform.LocalContext
+import android.app.TimePickerDialog
+import androidx.compose.material3.TextButton
+import com.example.project_enlishlearning.viewmodel.NotificationViewModel
+import java.util.Locale
 
 @Composable
 fun NotificationSettingsScreen(
     navController: NavController,
     selected: BottomNavItem = BottomNavItem.Notification,
-    onBottomItemSelected: (BottomNavItem) -> Unit = {}
+    onBottomItemSelected: (BottomNavItem) -> Unit = {},
+    viewModel: NotificationViewModel = viewModel()
 ) {
-    var dailyReminder by remember { mutableStateOf(true) }
-    var reviewReminder by remember { mutableStateOf(true) }
-    var pushNotification by remember { mutableStateOf(true) }
-    var emailNotification by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
+    val dailyReminder by viewModel.dailyReminderEnabled.collectAsState()
+    val reviewReminder by viewModel.reviewReminderEnabled.collectAsState()
+    val pushNotification by viewModel.pushNotificationEnabled.collectAsState()
+    val selectedHour by viewModel.selectedHour.collectAsState()
+    val selectedMinute by viewModel.selectedMinute.collectAsState()
+
+    val permissionLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        contract = androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
+    ) {
+    }
+
+    val requestPermissionIfNecessary = { onPermissionChecked: () -> Unit ->
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            val hasPermission = androidx.core.content.ContextCompat.checkSelfPermission(
+                context,
+                android.Manifest.permission.POST_NOTIFICATIONS
+            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+
+            if (!hasPermission) {
+                permissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+            } else {
+                onPermissionChecked()
+            }
+        } else {
+            onPermissionChecked()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -102,26 +125,54 @@ fun NotificationSettingsScreen(
                     ),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                NotificationHeaderCard()
 
-                NotificationSection(title = "Daily Reminder") {
+                NotificationSection(title = "Daily Reminder"){
                     NotificationToggleItem(
                         icon = Icons.Default.NotificationsActive,
                         title = "Daily learning reminder",
-                        subtitle = "Remind you to learn new vocabulary every day based on your schedule",
+                        subtitle = "Remind you to learn new vocabulary every day",
                         checked = dailyReminder,
-                        recommended = true,
-                        onCheckedChange = { dailyReminder = it }
+                        onCheckedChange = { checked ->
+                            if (checked) {
+                                requestPermissionIfNecessary {
+                                    viewModel.toggleDailyReminder(true)
+                                }
+                            } else {
+                                viewModel.toggleDailyReminder(false)
+                            }
+                        }
+                    )
+
+                    NotificationTimeCard(
+                        hour = selectedHour,
+                        minute = selectedMinute,
+                        onTimeSelected = { hour, minute ->
+
+                            viewModel.updateReminderTime(
+                                hour,
+                                minute
+                            )
+                        }
                     )
                 }
+
+
 
                 NotificationSection(title = "Review Reminder") {
                     NotificationToggleItem(
                         icon = Icons.Default.Schedule,
                         title = "Review due reminder",
-                        subtitle = "Based on the Spaced Repetition (SM-2) algorithm",
+                        subtitle = "Notify you when vocabulary is due review",
                         checked = reviewReminder,
-                        onCheckedChange = { reviewReminder = it }
+                        onCheckedChange = { checked ->
+                            if (checked) {
+                                requestPermissionIfNecessary {
+                                    viewModel.toggleReviewReminder(true)
+                                }
+                            } else {
+                                viewModel.toggleReviewReminder(false)
+                            }
+                        }
                     )
                 }
 
@@ -129,79 +180,91 @@ fun NotificationSettingsScreen(
                     NotificationToggleItem(
                         icon = Icons.Default.Notifications,
                         title = "Push Notification",
-                        subtitle = "Receive notifications on your phone",
+                        subtitle = "Receive daily learning news and push notifications",
                         checked = pushNotification,
-                        onCheckedChange = { pushNotification = it }
-                    )
-
-                    HorizontalDivider(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 6.dp),
-                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
-                    )
-
-                    NotificationToggleItem(
-                        icon = Icons.Default.Email,
-                        title = "Email Notification",
-                        subtitle = "Receive notifications via email",
-                        checked = emailNotification,
-                        onCheckedChange = { emailNotification = it }
+                        onCheckedChange = { checked ->
+                            if (checked) {
+                                requestPermissionIfNecessary {
+                                    viewModel.togglePushNotification(true)
+                                }
+                            } else {
+                                viewModel.togglePushNotification(false)
+                            }
+                        }
                     )
                 }
-
-                InfoFooter()
             }
         }
     }
 }
 
 @Composable
-fun NotificationHeaderCard() {
-    AppCard(modifier = Modifier.fillMaxWidth()) {
+fun NotificationTimeCard(
+    hour: Int,
+    minute: Int,
+    onTimeSelected: (Int, Int) -> Unit
+) {
+
+    val context = LocalContext.current
+
+    AppCard(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+
         Row(
             modifier = Modifier
-                .background(
-                    Brush.linearGradient(
-                        listOf(
-                            GradientStart.copy(alpha = 0.9f),
-                            GradientEnd.copy(alpha = 0.6f)
-                        )
-                    )
-                )
+                .fillMaxWidth()
                 .padding(AppDimens.CardPadding),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
-                modifier = Modifier
-                    .size(54.dp)
-                    .background(
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
-                        CircleShape
-                    ),
-                contentAlignment = Alignment.Center
+
+            Column(
+                modifier = Modifier.weight(1f)
             ) {
-                Icon(
-                    imageVector = Icons.Default.Alarm,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
+
+                Text(
+                    text = "Reminder Time",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold
+                )
+
+                Spacer(
+                    modifier = Modifier.height(4.dp)
+                )
+
+                Text(
+                    text = String.format(
+                        Locale.US,
+                        "%02d:%02d",
+                        hour,
+                        minute
+                    ),
+                    style = MaterialTheme.typography.bodyLarge
                 )
             }
 
-            Spacer(modifier = Modifier.width(14.dp))
+            TextButton(
+                onClick = {
 
-            Column {
-                Text(
-                    text = "Stay Consistent",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "Manage how you receive learning reminders",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                    val picker = TimePickerDialog(
+                        context,
+                        { _, h, m ->
+
+                            onTimeSelected(
+                                h,
+                                m
+                            )
+                        },
+                        hour,
+                        minute,
+                        true
+                    )
+
+                    picker.show()
+                }
+            ) {
+
+                Text("Change")
             }
         }
     }
@@ -251,7 +314,6 @@ fun NotificationToggleItem(
             .padding(vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // 1. Icon bên trái
         Box(
             modifier = Modifier
                 .size(44.dp)
@@ -280,7 +342,7 @@ fun NotificationToggleItem(
                     text = title,
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.weight(1f, fill = false) // QUAN TRỌNG: Giúp chữ tự ngắt dòng nếu quá dài chứ không đẩy badge ra ngoài screen
+                    modifier = Modifier.weight(1f, fill = false)
                 )
 
                 if (recommended) {
@@ -296,7 +358,7 @@ fun NotificationToggleItem(
             )
         }
 
-        Spacer(modifier = Modifier.width(8.dp)) // Khoảng cách an toàn trước khi đến Switch
+        Spacer(modifier = Modifier.width(8.dp))
 
         Switch(
             checked = checked,
@@ -333,16 +395,6 @@ private fun RecommendedBadge() {
             color = MaterialTheme.colorScheme.primary
         )
     }
-}
-
-@Composable
-private fun InfoFooter() {
-    Text(
-        text = "You can change this anytime in settings",
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(horizontal = 6.dp)
-    )
 }
 
 @Preview(showBackground = true, showSystemUi = true)

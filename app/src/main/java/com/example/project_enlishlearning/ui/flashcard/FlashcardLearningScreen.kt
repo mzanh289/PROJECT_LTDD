@@ -59,20 +59,112 @@ import com.example.project_enlishlearning.ui.theme.Primary
 import com.example.project_enlishlearning.ui.theme.ProjectEnlishLearningTheme
 import com.example.project_enlishlearning.ui.theme.Secondary
 import com.example.project_enlishlearning.ui.theme.Warning
-
+import android.app.Application
+import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.platform.LocalContext
+import com.example.project_enlishlearning.viewmodel.VocabularyViewModel
+import androidx.compose.runtime.LaunchedEffect
+import com.example.project_enlishlearning.data.local.entity.VocabularyWordEntity
+import com.example.project_enlishlearning.viewmodel.FlashcardViewModel
+import com.example.project_enlishlearning.utils.ReviewRating
 @Composable
 fun FlashcardLearningScreen(
-    navController: NavController
+    navController: NavController,
+    setId: Int,
+    mode: String = "normal",
+    viewModel: FlashcardViewModel = viewModel(
+        factory = ViewModelProvider.AndroidViewModelFactory.getInstance(
+            LocalContext.current.applicationContext as Application
+        )
+    )
 ) {
-    var flipped by remember { mutableStateOf(false) }
+    LaunchedEffect(setId, mode) {
+        when (mode) {
+            "review" -> viewModel.loadReviewFlashcards(setId)
+            "continue" -> viewModel.loadContinueFlashcards(setId)
+            else -> viewModel.loadFlashcards(setId)
+        }
+    }
+
+
+    val uiState by viewModel.uiState.collectAsState()
+
+    val words = uiState.words
+    val currentIndex = uiState.currentIndex
+    val currentWord = uiState.currentWord
+    val flipped = uiState.isFlipped
+    val progress = uiState.progress
+    LaunchedEffect(uiState.isFinished) {
+        if (uiState.isFinished) {
+            viewModel.saveSessionResult {
+                navController.navigate(
+                    Screen.FlashcardResult.createRoute(
+                        setId = setId,
+                        correct = uiState.correctCount,
+                        wrong = uiState.wrongCount,
+                        total = uiState.totalWords
+                    )
+                )
+            }
+        }
+    }
+
+    if (uiState.isLoading) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text("Loading...")
+        }
+        return
+    }
+
+    if (words.isEmpty() || currentWord == null) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.padding(24.dp)
+            ) {
+                Text(
+                    text = when (mode) {
+                        "review" -> "Không có từ cần ôn tập."
+                        else -> "Chưa có từ vựng trong bộ này."
+                    },
+                    style = MaterialTheme.typography.titleMedium,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Button(
+                    onClick = {
+                        navController.popBackStack()
+                    },
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    )
+                ) {
+                    Text(
+                        text = "Quay lại",
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+        return
+    }
     val rotation by animateFloatAsState(
         targetValue = if (flipped) 180f else 0f,
         animationSpec = tween(520),
         label = ""
     )
 
-    var studiedWords by remember { mutableIntStateOf(18) }
-    val dailyGoal = 30
 
     val selectedSrs = remember { mutableStateOf<String?>(null) }
     val density = LocalDensity.current
@@ -111,16 +203,17 @@ fun FlashcardLearningScreen(
                                 rotationY = rotation
                                 cameraDistance = 12f * density.density
                             }
-                            .clickable { flipped = !flipped }
+                            .clickable { viewModel.flipCard() }
                     ) {
                         Box(
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
                         ) {
                             if (rotation <= 90f) {
-                                FlashcardFront()
+                                FlashcardFront(word = currentWord)
                             } else {
                                 FlashcardBack(
+                                    word = currentWord,
                                     modifier = Modifier.graphicsLayer { rotationY = 180f }
                                 )
                             }
@@ -130,6 +223,20 @@ fun FlashcardLearningScreen(
 
                 item {
                     AppSectionHeader(title = "How well did you remember?")
+                }
+                item {
+
+                    Text(
+                        text = "${currentIndex + 1}/${words.size}",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    LinearProgressIndicator(
+                        progress = { progress },
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 }
 
                 item {
@@ -181,7 +288,18 @@ fun FlashcardLearningScreen(
 
                     Button(
                         onClick = {
-                            navController.navigate(Screen.FlashcardLearning.route)
+                            val selected = selectedSrs.value ?: return@Button
+
+                            val rating = when (selected) {
+                                "Again" -> ReviewRating.AGAIN
+                                "Hard" -> ReviewRating.HARD
+                                "Good" -> ReviewRating.GOOD
+                                "Easy" -> ReviewRating.EASY
+                                else -> return@Button
+                            }
+
+                            selectedSrs.value = null
+                            viewModel.answerCurrentWord(rating)
                         },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(16.dp),
@@ -199,7 +317,16 @@ fun FlashcardLearningScreen(
 
                     Button(
                         onClick = {
-                            navController.navigate(Screen.FlashcardResult.route)
+                            viewModel.saveSessionResult {
+                                navController.navigate(
+                                    Screen.FlashcardResult.createRoute(
+                                        setId = setId,
+                                        correct = uiState.correctCount,
+                                        wrong = uiState.wrongCount,
+                                        total = uiState.totalWords
+                                    )
+                                )
+                            }
                         },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(16.dp),
@@ -219,7 +346,7 @@ fun FlashcardLearningScreen(
 }
 
 @Composable
-private fun FlashcardFront() {
+private fun FlashcardFront( word: VocabularyWordEntity) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Surface(
             shape = CircleShape,
@@ -234,13 +361,13 @@ private fun FlashcardFront() {
         }
         Spacer(modifier = Modifier.height(20.dp))
         Text(
-            text = "Meticulous",
+            text = word.word,
             style = MaterialTheme.typography.displaySmall,
             color = MaterialTheme.colorScheme.onBackground
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "/məˈtɪk.jə.ləs/",
+            text = word.pronunciation,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -255,7 +382,8 @@ private fun FlashcardFront() {
 }
 
 @Composable
-private fun FlashcardBack(modifier: Modifier = Modifier) {
+private fun FlashcardBack(word: VocabularyWordEntity,
+                          modifier: Modifier = Modifier) {
     Column(
         modifier = modifier.padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -269,7 +397,7 @@ private fun FlashcardBack(modifier: Modifier = Modifier) {
         )
         Spacer(modifier = Modifier.height(12.dp))
         Text(
-            text = "Showing great attention to detail; very careful and precise.",
+            text = word.meaning,
             textAlign = TextAlign.Center,
             style = MaterialTheme.typography.titleLarge
         )
@@ -282,38 +410,8 @@ private fun FlashcardBack(modifier: Modifier = Modifier) {
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "\"She kept meticulous records of every transaction.\"",
+            text = word.example,
             textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-}
-
-@Composable
-private fun DailyPlanItem(title: String, value: String) {
-    Column {
-        Text(
-            text = value,
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.primary
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = title,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-}
-
-@Composable
-private fun Sm2Info(title: String, value: String) {
-    Column {
-        Text(text = value, style = MaterialTheme.typography.titleLarge)
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = title,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -345,6 +443,6 @@ private fun SrsButton(
 @Composable
 fun FlashcardLearningPreview() {
     ProjectEnlishLearningTheme {
-        FlashcardLearningScreen(navController = rememberNavController())
+        FlashcardLearningScreen(navController = rememberNavController(), 3)
     }
 }

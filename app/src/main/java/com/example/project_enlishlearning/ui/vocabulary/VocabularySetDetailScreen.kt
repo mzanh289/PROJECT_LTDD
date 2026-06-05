@@ -1,107 +1,179 @@
 package com.example.project_enlishlearning.ui.vocabulary
 
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Book
+import androidx.compose.material.icons.filled.FileDownload
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.UploadFile
 import androidx.compose.material.icons.outlined.FavoriteBorder
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.project_enlishlearning.navigation.Screen
-import com.example.project_enlishlearning.ui.components.AppCard
-import com.example.project_enlishlearning.ui.components.AppGradientBackground
-import com.example.project_enlishlearning.ui.components.AppTagChip
-import com.example.project_enlishlearning.ui.components.AppTextField
-import com.example.project_enlishlearning.ui.components.AppToolbar
-import com.example.project_enlishlearning.ui.components.BottomNavItem
-import com.example.project_enlishlearning.ui.components.BottomNavigationBar
-import com.example.project_enlishlearning.ui.components.PrimaryButton
-import com.example.project_enlishlearning.ui.theme.AppDimens
-import com.example.project_enlishlearning.ui.theme.GradientEnd
-import com.example.project_enlishlearning.ui.theme.GradientStart
-import com.example.project_enlishlearning.ui.theme.ProjectEnlishLearningTheme
-import com.example.project_enlishlearning.ui.theme.Success
-import com.example.project_enlishlearning.ui.theme.Warning
+import com.example.project_enlishlearning.ui.components.*
+import com.example.project_enlishlearning.ui.theme.*
+import com.example.project_enlishlearning.viewmodel.VocabularyViewModel
+import com.example.project_enlishlearning.data.local.entity.VocabularySetEntity
+import com.example.project_enlishlearning.data.local.entity.VocabularyWordEntity
+import com.example.project_enlishlearning.viewmodel.ExportState
+import android.app.Application
+import com.example.project_enlishlearning.utils.constants.WORD_ACTION_RESULT
+import com.example.project_enlishlearning.utils.constants.WordAction
+import com.example.project_enlishlearning.utils.file.FileExportHelper
+import kotlinx.coroutines.launch
 
+// Định nghĩa enum trạng thái để đồng bộ hiển thị màu sắc trên UI
 enum class VocabularyStatus(val label: String) {
     New("New"),
     Learning("Learning"),
     Mastered("Mastered")
 }
 
-data class VocabularySetDetailUi(
-    val title: String,
-    val description: String,
-    val tags: List<String>,
-    val totalWords: Int,
-    val progress: Int
-)
-
-data class VocabularyWordUi(
-    val word: String,
-    val pronunciation: String,
-    val meaning: String,
-    val example: String,
-    val status: VocabularyStatus,
-    val isFavorite: Boolean
-)
-
 @Composable
 fun VocabularySetDetailScreen(
     navController: NavController,
+    setId: Int, // Nhận ID của bộ từ vựng được truyền sang từ màn hình trước
     selected: BottomNavItem = BottomNavItem.Vocabulary,
     onBottomItemSelected: (BottomNavItem) -> Unit = {},
-    set: VocabularySetDetailUi = sampleVocabularySet,
-    initialWords: List<VocabularyWordUi> = sampleVocabularyWords
+    viewModel: VocabularyViewModel = viewModel(
+        factory = ViewModelProvider.AndroidViewModelFactory.getInstance(
+            LocalContext.current.applicationContext as Application
+        )
+    )
 ) {
     var searchQuery by remember { mutableStateOf("") }
-    val words = remember { mutableStateListOf(*initialWords.toTypedArray()) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
+
+    val exportState by viewModel.exportState.collectAsState()
+
+    var pendingExport by remember { mutableStateOf<ExportPayload?>(null) }
+
+    val exportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("text/csv")
+    ) { uri ->
+        val payload = pendingExport
+        if (uri != null && payload != null) {
+            coroutineScope.launch {
+                try {
+                    FileExportHelper.writeCsvToUri(
+                        context = context,
+                        uri = uri,
+                        csvContent = payload.csvContent
+                    )
+                    snackbarHostState.showSnackbar(
+                        message = "Exported: ${payload.fileName}"
+                    )
+                } catch (exception: Exception) {
+                    snackbarHostState.showSnackbar(
+                        message = exception.message ?: "Export failed"
+                    )
+                } finally {
+                    pendingExport = null
+                    viewModel.resetExportState()
+                }
+            }
+        } else {
+            pendingExport = null
+            viewModel.resetExportState()
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        val result = navController.currentBackStackEntry
+            ?.savedStateHandle
+            ?.get<WordAction>(WORD_ACTION_RESULT)
+
+        when (result) {
+            WordAction.ADDED ->
+                snackbarHostState.showSnackbar(
+                    "Word added successfully"
+                )
+
+            WordAction.UPDATED ->
+                snackbarHostState.showSnackbar(
+                    "Word updated successfully"
+                )
+
+            WordAction.IMPORTED ->
+                snackbarHostState.showSnackbar(
+                    "Vocabulary imported successfully"
+                )
+
+            WordAction.EXPORTED ->
+                snackbarHostState.showSnackbar(
+                    "Vocabulary exported successfully"
+                )
+
+            else -> Unit
+        }
+
+        navController.currentBackStackEntry
+            ?.savedStateHandle
+            ?.remove<WordAction>(WORD_ACTION_RESULT)
+    }
+
+    LaunchedEffect(exportState) {
+        when (exportState) {
+            is ExportState.Error -> {
+                val error = exportState as ExportState.Error
+                snackbarHostState.showSnackbar(
+                    message = error.message
+                )
+                viewModel.resetExportState()
+            }
+            is ExportState.Ready -> {
+                val ready = exportState as ExportState.Ready
+                pendingExport = ExportPayload(
+                    csvContent = ready.csvContent,
+                    fileName = ready.fileName
+                )
+                exportLauncher.launch(ready.fileName)
+            }
+            else -> Unit
+        }
+    }
+
+    // 1. Tự động gọi Database để lấy danh sách từ vựng khi mở màn hình này lên
+    LaunchedEffect(setId) {
+        viewModel.loadWordsForSet(setId)
+    }
+
+    // 2. Lấy dữ liệu thật từ ViewModel
+    val words by viewModel.wordsInSet.collectAsState()
+    val allSets by viewModel.vocabularySets.collectAsState()
+
+    // Tìm thông tin của bộ từ vựng hiện tại để vẽ phần Header
+    val currentSet = allSets.find { it.setId == setId }
 
     Scaffold(
         topBar = {
             AppToolbar(
-                title = set.title,
+                title = currentSet?.title ?: "Loading...",
                 subtitle = "Vocabulary set details",
                 navigationIcon = Icons.AutoMirrored.Filled.ArrowBack,
                 onNavigationClick = { navController.popBackStack() }
@@ -112,7 +184,8 @@ fun VocabularySetDetailScreen(
                 selected = selected,
                 onItemSelected = onBottomItemSelected
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { innerPadding ->
         AppGradientBackground(
             modifier = Modifier
@@ -121,7 +194,7 @@ fun VocabularySetDetailScreen(
         ) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                contentPadding = PaddingValues(
                     start = AppDimens.ScreenPadding,
                     end = AppDimens.ScreenPadding,
                     top = 12.dp,
@@ -129,65 +202,108 @@ fun VocabularySetDetailScreen(
                 ),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                item {
-                    SetHeaderCard(set = set)
+                // Hiển thị thẻ thông tin Bộ từ vựng ở trên cùng nếu tìm thấy dữ liệu
+                currentSet?.let {
+                    item {
+                        SetHeaderCard(set = it)
+                    }
                 }
 
                 item {
-                    PrimaryButton(
-                        text = "Add Vocabulary",
-                        onClick = {
-                            navController.navigate(Screen.AddVocabulary.route)
-                        },
-                        leadingIcon = Icons.Default.Add,
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                    AppCard(modifier = Modifier.fillMaxWidth()) {
+                        Column(modifier = Modifier.padding(AppDimens.CardPadding)) {
+                            AppSectionHeader(
+                                title = "Manage vocabulary",
+                                subtitle = "Add, import, export, or search"
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                    SecondaryButton(
+                                        text = "Add",
+                                        onClick = {
+                                            navController.navigate("${Screen.AddVocabulary.route}/$setId")
+                                        },
+                                        leadingIcon = Icons.Default.Add,
+                                        modifier = Modifier.weight(1f)
+                                    )
+
+                                    SecondaryButton(
+                                        text = "Import",
+                                        onClick = {
+                                            navController.navigate("${Screen.ImportVocabulary.route}/$setId")
+                                        },
+                                        leadingIcon = Icons.Default.UploadFile,
+                                        modifier = Modifier.weight(1f)
+                                    )
+
+                                    PrimaryButton(
+                                        text = "Export",
+                                        onClick = {
+                                            viewModel.exportVocabularySet(setId, currentSet?.title)
+                                        },
+                                        leadingIcon = Icons.Default.FileDownload,
+                                        enabled = exportState !is ExportState.Loading,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                            }
+                            Spacer(modifier = Modifier.height(12.dp))
+                            VocabularySearchBar(
+                                value = searchQuery,
+                                onValueChange = { searchQuery = it }
+                            )
+                        }
+                    }
                 }
 
-                item {
-                    VocabularySearchBar(
-                        value = searchQuery,
-                        onValueChange = { searchQuery = it }
-                    )
-                }
-
+                // Lọc từ vựng theo ô tìm kiếm
                 val filteredWords = words.filter {
                     it.word.contains(searchQuery, ignoreCase = true) ||
-                        it.meaning.contains(searchQuery, ignoreCase = true)
+                            it.meaning.contains(searchQuery, ignoreCase = true)
                 }
 
+                // ... (Các code bên trên giữ nguyên)
                 if (filteredWords.isEmpty()) {
                     item {
-                        EmptyStateView(onAddVocabulary = {
-                            navController.navigate(Screen.AddVocabulary.route)
-                        })
+                        EmptyStateView(
+                            onAddVocabulary = {
+                                navController.navigate("${Screen.AddVocabulary.route}/$setId")
+                            }
+                        )
                     }
                 } else {
-                    itemsIndexed(filteredWords, key = { _, item -> item.word }) { index, item ->
+                    itemsIndexed(filteredWords, key = { _, item -> item.wordId }) { _, item ->
                         VocabularyItemCard(
                             word = item,
                             onFavoriteToggle = {
-                                val currentIndex = words.indexOfFirst { it.word == item.word }
-                                if (currentIndex >= 0) {
-                                    val updated = words[currentIndex].copy(
-                                        isFavorite = !words[currentIndex].isFavorite
+                                viewModel.toggleFavorite(item)
+                            },
+                            onDeleteClick = {
+                                // Gọi hàm xóa từ vựng vừa viết ở Bước 1
+                                viewModel.deleteWord(item)
+
+                                coroutineScope.launch {
+                                    snackbarHostState.showSnackbar(
+                                        "Word deleted successfully"
                                     )
-                                    words[currentIndex] = updated
                                 }
+                            },
+                            onEditClick = {
+                                navController.navigate("edit_word/${item.wordId}")
                             }
                         )
                     }
                 }
+                // ...
+                }
             }
         }
     }
-}
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun SetHeaderCard(
-    set: VocabularySetDetailUi
-) {
+fun SetHeaderCard(set: VocabularySetEntity) {
     AppCard(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier
@@ -212,17 +328,6 @@ fun SetHeaderCard(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Spacer(modifier = Modifier.height(14.dp))
-
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                set.tags.forEach { tag ->
-                    AppTagChip(text = tag)
-                }
-            }
-
             Spacer(modifier = Modifier.height(16.dp))
 
             Row(
@@ -256,11 +361,13 @@ fun SetHeaderCard(
     }
 }
 
+private data class ExportPayload(
+    val csvContent: String,
+    val fileName: String
+)
+
 @Composable
-fun VocabularySearchBar(
-    value: String,
-    onValueChange: (String) -> Unit
-) {
+fun VocabularySearchBar(value: String, onValueChange: (String) -> Unit) {
     AppTextField(
         value = value,
         onValueChange = onValueChange,
@@ -272,9 +379,15 @@ fun VocabularySearchBar(
 
 @Composable
 fun VocabularyItemCard(
-    word: VocabularyWordUi,
-    onFavoriteToggle: () -> Unit
+    word: VocabularyWordEntity,
+    onFavoriteToggle: () -> Unit,
+    onDeleteClick: () -> Unit, // Thêm tham số sự kiện Xóa
+    onEditClick: () -> Unit    // Thêm tham số sự kiện Sửa
 ) {
+    // 1. Thêm biến quản lý trạng thái mở/đóng Menu và Hộp thoại xác nhận xóa
+    var expanded by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+
     AppCard(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(AppDimens.CardPadding)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -294,25 +407,40 @@ fun VocabularyItemCard(
 
                 IconButton(onClick = onFavoriteToggle) {
                     Icon(
-                        imageVector = if (word.isFavorite) {
-                            Icons.Filled.Favorite
-                        } else {
-                            Icons.Outlined.FavoriteBorder
-                        },
+                        imageVector = if (word.isFavorite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
                         contentDescription = null,
-                        tint = if (word.isFavorite) {
-                            MaterialTheme.colorScheme.primary
-                        } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                        }
+                        tint = if (word.isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 
-                IconButton(onClick = { }) {
-                    Icon(
-                        imageVector = Icons.Default.MoreVert,
-                        contentDescription = null
-                    )
+                // 2. Wrap IconButton trong Box và thêm DropdownMenu
+                Box {
+                    IconButton(onClick = { expanded = true }) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = null
+                        )
+                    }
+
+                    DropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Edit Word") },
+                            onClick = {
+                                expanded = false
+                                onEditClick() // Gọi sự kiện sửa
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Delete Word") },
+                            onClick = {
+                                expanded = false
+                                showDeleteDialog = true // Mở hộp thoại xác nhận xóa
+                            }
+                        )
+                    }
                 }
             }
 
@@ -335,15 +463,42 @@ fun VocabularyItemCard(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            StatusChip(status = word.status)
+            val currentStatus = when (word.status) {
+                "Learning" -> VocabularyStatus.Learning
+                "Mastered" -> VocabularyStatus.Mastered
+                else -> VocabularyStatus.New
+            }
+            StatusChip(status = currentStatus)
         }
+    }
+
+    // 3. Hiển thị thông báo xác nhận xóa
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("Delete vocabulary?") },
+            text = { Text("Are you sure you want to delete '${word.word}'? This cannot be undone.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteDialog = false
+                        onDeleteClick() // Gọi logic xóa thực sự xuống Database
+                    }
+                ) {
+                    Text("Delete", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }
 
 @Composable
-fun EmptyStateView(
-    onAddVocabulary: () -> Unit
-) {
+fun EmptyStateView(onAddVocabulary: () -> Unit) {
     AppCard(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier
@@ -354,10 +509,7 @@ fun EmptyStateView(
             Box(
                 modifier = Modifier
                     .size(64.dp)
-                    .background(
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
-                        CircleShape
-                    ),
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -416,101 +568,10 @@ private fun StatusChip(status: VocabularyStatus) {
     }
 }
 
-private val sampleVocabularySet = VocabularySetDetailUi(
-    title = "IELTS Academic Vocabulary",
-    description = "Advanced academic terms for IELTS Reading and Writing tasks.",
-    tags = listOf("IELTS", "Academic", "Exam"),
-    totalWords = 96,
-    progress = 68
-)
-
-private val sampleVocabularyWords = listOf(
-    VocabularyWordUi(
-        word = "Acquire",
-        pronunciation = "/əˈkwaɪər/",
-        meaning = "To obtain or gain something.",
-        example = "She acquired new skills through daily practice.",
-        status = VocabularyStatus.New,
-        isFavorite = true
-    ),
-    VocabularyWordUi(
-        word = "Determine",
-        pronunciation = "/dɪˈtɝːmɪn/",
-        meaning = "To decide or find out something.",
-        example = "The results will determine the next steps.",
-        status = VocabularyStatus.Learning,
-        isFavorite = false
-    ),
-    VocabularyWordUi(
-        word = "Significant",
-        pronunciation = "/sɪɡˈnɪfɪkənt/",
-        meaning = "Important or noticeable.",
-        example = "There was a significant improvement in scores.",
-        status = VocabularyStatus.Mastered,
-        isFavorite = true
-    ),
-    VocabularyWordUi(
-        word = "Approach",
-        pronunciation = "/əˈproʊtʃ/",
-        meaning = "A way of dealing with something.",
-        example = "They adopted a new approach to problem solving.",
-        status = VocabularyStatus.Learning,
-        isFavorite = false
-    ),
-    VocabularyWordUi(
-        word = "Enhance",
-        pronunciation = "/ɪnˈhæns/",
-        meaning = "To improve the quality or value of something.",
-        example = "Music can enhance the atmosphere of a lesson.",
-        status = VocabularyStatus.New,
-        isFavorite = false
-    ),
-    VocabularyWordUi(
-        word = "Sufficient",
-        pronunciation = "/səˈfɪʃənt/",
-        meaning = "Enough for a particular purpose.",
-        example = "Provide sufficient evidence to support the claim.",
-        status = VocabularyStatus.Learning,
-        isFavorite = false
-    ),
-    VocabularyWordUi(
-        word = "Sustain",
-        pronunciation = "/səˈsteɪn/",
-        meaning = "To maintain or keep something going.",
-        example = "It is hard to sustain focus without breaks.",
-        status = VocabularyStatus.Mastered,
-        isFavorite = true
-    ),
-    VocabularyWordUi(
-        word = "Illustrate",
-        pronunciation = "/ˈɪləˌstreɪt/",
-        meaning = "To explain or make something clear.",
-        example = "The chart illustrates the growth trend.",
-        status = VocabularyStatus.New,
-        isFavorite = false
-    ),
-    VocabularyWordUi(
-        word = "Allocate",
-        pronunciation = "/ˈæl.ə.keɪt/",
-        meaning = "To distribute resources for a purpose.",
-        example = "Allocate time for reading every day.",
-        status = VocabularyStatus.Learning,
-        isFavorite = false
-    ),
-    VocabularyWordUi(
-        word = "Evaluate",
-        pronunciation = "/ɪˈvæl.ju.eɪt/",
-        meaning = "To judge or assess the value of something.",
-        example = "Evaluate the arguments before responding.",
-        status = VocabularyStatus.Mastered,
-        isFavorite = true
-    )
-)
-
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 private fun VocabularySetDetailPreview() {
     ProjectEnlishLearningTheme {
-        VocabularySetDetailScreen(navController = rememberNavController())
+        VocabularySetDetailScreen(navController = rememberNavController(), setId = 1)
     }
 }

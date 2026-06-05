@@ -1,53 +1,65 @@
 package com.example.project_enlishlearning.ui.flashcard
 
-import androidx.compose.foundation.background
+import android.app.Application
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Replay
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.project_enlishlearning.data.local.entity.VocabularyWordEntity
 import com.example.project_enlishlearning.navigation.Screen
-import com.example.project_enlishlearning.ui.components.*
+import com.example.project_enlishlearning.ui.components.AppCard
+import com.example.project_enlishlearning.ui.components.AppGradientBackground
+import com.example.project_enlishlearning.ui.components.AppToolbar
+import com.example.project_enlishlearning.ui.components.PrimaryButton
 import com.example.project_enlishlearning.ui.theme.AppDimens
 import com.example.project_enlishlearning.ui.theme.ProjectEnlishLearningTheme
-
-data class ReviewWord(
-    val word: String,
-    val meaning: String,
-    val dueLevel: String, // Again / Hard / Good / Easy
-    val nextReview: String
-)
+import com.example.project_enlishlearning.viewmodel.ReviewVocabularyViewModel
 
 @Composable
 fun ReviewVocabularyScreen(
-    navController: NavController
-) {
-    val reviewWords = remember {
-        listOf(
-            ReviewWord("Acquire", "To gain or obtain something", "Hard", "Tomorrow"),
-            ReviewWord("Determine", "To decide or establish", "Good", "In 3 days"),
-            ReviewWord("Significant", "Important or meaningful", "Again", "Today")
+    navController: NavController,
+    setId: Int,
+    viewModel: ReviewVocabularyViewModel = viewModel(
+        factory = ViewModelProvider.AndroidViewModelFactory.getInstance(
+            LocalContext.current.applicationContext as Application
         )
+    )
+) {
+    LaunchedEffect(setId) {
+        viewModel.loadDifficultWords(setId)
     }
+
+    val uiState by viewModel.uiState.collectAsState()
+    val reviewWords = uiState.difficultWords
+
+    val isDueReviewMode = setId == Screen.ReviewVocabulary.GLOBAL_DUE_REVIEW_SET_ID
+    val title = if (isDueReviewMode) "Global Due Review" else "Review Vocabulary"
+    val subtitle = if (isDueReviewMode) "Review all due words across all sets" else "Spaced repetition learning session"
 
     Scaffold(
         topBar = {
             AppToolbar(
-                title = "Review Vocabulary",
-                subtitle = "Spaced repetition learning session",
-                navigationIcon = Icons.Default.Replay,
+                title = title,
+                subtitle = subtitle,
+                Icons.AutoMirrored.Filled.ArrowBack,
                 onNavigationClick = { navController.popBackStack() }
             )
         }
@@ -65,13 +77,12 @@ fun ReviewVocabularyScreen(
                     .padding(AppDimens.ScreenPadding)
             ) {
 
-                // ================= HEADER CARD =================
                 AppCard(modifier = Modifier.fillMaxWidth()) {
 
                     Column(modifier = Modifier.padding(AppDimens.CardPadding)) {
 
                         Text(
-                            text = "Today's Review",
+                            text = if (isDueReviewMode) "Due Review" else "Today's Review",
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold
                         )
@@ -79,7 +90,11 @@ fun ReviewVocabularyScreen(
                         Spacer(modifier = Modifier.height(8.dp))
 
                         Text(
-                            text = "You have ${reviewWords.size} words to review today.",
+                            text = if (isDueReviewMode) {
+                                "You have ${reviewWords.size} words due for review."
+                            } else {
+                                "You have ${reviewWords.size} words to review today."
+                            },
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
 
@@ -88,7 +103,12 @@ fun ReviewVocabularyScreen(
                         PrimaryButton(
                             text = "Start Review",
                             onClick = {
-                                navController.navigate(Screen.FlashcardLearning.route)
+                                navController.navigate(
+                                    Screen.FlashcardLearning.createRoute(
+                                        setId = setId,
+                                        mode = "review"
+                                    )
+                                )
                             },
                             modifier = Modifier.fillMaxWidth()
                         )
@@ -97,7 +117,6 @@ fun ReviewVocabularyScreen(
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // ================= LIST =================
                 Text(
                     text = "Due Words",
                     style = MaterialTheme.typography.titleMedium,
@@ -106,12 +125,29 @@ fun ReviewVocabularyScreen(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    contentPadding = PaddingValues(bottom = 80.dp)
-                ) {
-                    items(reviewWords) { item ->
-                        ReviewWordCard(item)
+                if (uiState.isLoading) {
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                } else if (reviewWords.isEmpty()) {
+                    AppCard(modifier = Modifier.fillMaxWidth()) {
+                        Text(
+                            text = "No difficult words right now. Nice work!",
+                            modifier = Modifier.padding(AppDimens.CardPadding),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                } else {
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        contentPadding = PaddingValues(bottom = 80.dp)
+                    ) {
+                        items(reviewWords, key = { it.wordId }) { item ->
+                            ReviewWordCard(item)
+                        }
                     }
                 }
             }
@@ -120,7 +156,7 @@ fun ReviewVocabularyScreen(
 }
 
 @Composable
-fun ReviewWordCard(item: ReviewWord) {
+fun ReviewWordCard(item: VocabularyWordEntity) {
 
     AppCard(modifier = Modifier.fillMaxWidth()) {
 
@@ -139,15 +175,15 @@ fun ReviewWordCard(item: ReviewWord) {
 
                 Surface(
                     shape = RoundedCornerShape(12.dp),
-                    color = when (item.dueLevel) {
-                        "Again" -> Color(0xFFEF4444)
-                        "Hard" -> Color(0xFFF59E0B)
-                        "Good" -> Color(0xFF10B981)
-                        else -> Color(0xFF4F46E5)
+                    color = when (item.status) {
+                        "LEARNING" -> Color(0xFFF59E0B)
+                        "REVIEWING" -> Color(0xFF10B981)
+                        "MASTERED" -> Color(0xFF4F46E5)
+                        else -> Color(0xFFEF4444)
                     }
                 ) {
                     Text(
-                        text = item.dueLevel,
+                        text = item.status,
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                         color = Color.White,
                         fontSize = MaterialTheme.typography.labelSmall.fontSize
@@ -165,7 +201,7 @@ fun ReviewWordCard(item: ReviewWord) {
             Spacer(modifier = Modifier.height(12.dp))
 
             Text(
-                text = "Next review: ${item.nextReview}",
+                text = item.example,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.primary
             )
@@ -178,8 +214,8 @@ fun ReviewWordCard(item: ReviewWord) {
 fun ReviewVocabularyScreenPreview() {
     ProjectEnlishLearningTheme {
         ReviewVocabularyScreen(
-            navController = rememberNavController()
+            navController = rememberNavController(),
+            setId = 1
         )
     }
 }
-

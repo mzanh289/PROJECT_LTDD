@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,81 +12,90 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.EmojiEvents
-import androidx.compose.material.icons.filled.LocalFireDepartment
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Flag
+import androidx.compose.material.icons.filled.Logout
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.School
-import androidx.compose.material.icons.filled.Timeline
+import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material.icons.filled.TrackChanges
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
-import com.example.project_enlishlearning.ui.components.AppCard
-import com.example.project_enlishlearning.ui.components.AppGradientBackground
-import com.example.project_enlishlearning.ui.components.AppSectionHeader
 import com.example.project_enlishlearning.ui.components.AppToolbar
 import com.example.project_enlishlearning.ui.components.BottomNavItem
 import com.example.project_enlishlearning.ui.components.BottomNavigationBar
-import com.example.project_enlishlearning.ui.theme.Accent
-import com.example.project_enlishlearning.ui.theme.AppDimens
-import com.example.project_enlishlearning.ui.theme.ProjectEnlishLearningTheme
-import com.example.project_enlishlearning.ui.theme.Secondary
-import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.IconButton
-import com.example.project_enlishlearning.navigation.Screen
+import com.example.project_enlishlearning.viewmodel.AuthViewModel
+import com.example.project_enlishlearning.viewmodel.ProfileViewModel
 
 @Composable
 fun ProfileScreen(
 	navController: NavController,
+	authViewModel: AuthViewModel,
+	profileViewModel: ProfileViewModel,
+	onEditProfileClick: () -> Unit,
+	onLogoutClick: () -> Unit,
 	selected: BottomNavItem = BottomNavItem.Profile,
-	onBottomItemSelected: (BottomNavItem) -> Unit = {}
+	onBottomItemSelected: (BottomNavItem) -> Unit = {},
 ) {
-    val primaryColor = MaterialTheme.colorScheme.primary
+	val profile by profileViewModel.profile.collectAsState()
 
-    val stats = remember(primaryColor) {
-        listOf(
-            ProfileStat("Streak", "18 Days", Icons.Default.LocalFireDepartment, Accent),
-            ProfileStat("Words", "1,245", Icons.Default.School, Secondary),
-            ProfileStat("Level", "B1", Icons.Default.Timeline, primaryColor)
-        )
-    }
+	var displayName by remember { mutableStateOf("") }
+	var email by remember { mutableStateOf(authViewModel.getCurrentUserEmail()) }
+	var englishLevel by remember { mutableStateOf("A1") }
+	var learningGoal by remember { mutableStateOf("") }
+	var dailyNewWordTarget by remember { mutableStateOf("10") }
+	var dailyReviewTarget by remember { mutableStateOf("20") }
+
+	LaunchedEffect(profile) {
+		profile?.let {
+			displayName = it.displayName
+			email = it.email
+			englishLevel = it.englishLevel
+			learningGoal = it.learningGoal
+			dailyNewWordTarget = it.dailyNewWordTarget.toString()
+			dailyReviewTarget = it.dailyReviewTarget.toString()
+		}
+	}
+
+	val levelProgress = getLevelProgress(englishLevel)
 
 	Scaffold(
 		topBar = {
 			AppToolbar(
 				title = "Profile",
-				subtitle = "Track your learning goals and progress.",
+				subtitle = "Manage your learning profile and goals.",
 				navigationIcon = Icons.AutoMirrored.Filled.ArrowBack,
-				onNavigationClick = { navController.popBackStack() },
-				actions = {
-					IconButton(
-						onClick = {
-							navController.navigate(Screen.EditProfileScreen.route)
-						}
-					) {
-						Icon(
-							imageVector = Icons.Default.Edit,
-							contentDescription = "Edit Profile"
-						)
-					}
-				}
+				onNavigationClick = { navController.popBackStack() }
 			)
 		},
 		bottomBar = {
@@ -94,65 +104,67 @@ fun ProfileScreen(
 				onItemSelected = onBottomItemSelected
 			)
 		}
-	) { innerPadding ->
-		AppGradientBackground(
+	) { padding ->
+
+		Box(
 			modifier = Modifier
 				.fillMaxSize()
-				.padding(innerPadding)
+				.background(
+					Brush.verticalGradient(
+						colors = listOf(
+							MaterialTheme.colorScheme.primary.copy(alpha = 0.10f),
+							MaterialTheme.colorScheme.background
+						)
+					)
+				)
+				.padding(padding)
 		) {
 			LazyColumn(
 				modifier = Modifier.fillMaxSize(),
-				contentPadding = androidx.compose.foundation.layout.PaddingValues(
-					start = AppDimens.ScreenPadding,
-					end = AppDimens.ScreenPadding,
-					top = 12.dp,
-					bottom = AppDimens.BottomBarPadding
-				),
-				verticalArrangement = Arrangement.spacedBy(16.dp)
+				contentPadding = PaddingValues(18.dp),
+				verticalArrangement = Arrangement.spacedBy(18.dp)
 			) {
+
 				item {
-					ProfileHeader()
+					ProfileHeroCard(
+						displayName = displayName,
+						email = email,
+						englishLevel = englishLevel
+					)
 				}
 
 				item {
-					AppSectionHeader(title = "Learning Target")
-					Spacer(modifier = Modifier.height(12.dp))
-					LearningTargetCard()
+					LevelProgressCard(
+						englishLevel = englishLevel,
+						progress = levelProgress
+					)
 				}
 
 				item {
-					AppSectionHeader(title = "Stats")
-					Spacer(modifier = Modifier.height(12.dp))
-					Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-						stats.forEach { stat ->
-							ProfileStatCard(stat, Modifier.weight(1f))
+					LearningGoalCard(
+						learningGoal = learningGoal,
+						dailyNewWordTarget = dailyNewWordTarget,
+						dailyReviewTarget = dailyReviewTarget
+					)
+				}
+
+				item {
+					ProfileInfoCard(
+						email = email,
+						englishLevel = englishLevel,
+						learningGoal = learningGoal
+					)
+				}
+
+				item {
+					ProfileActionsCard(
+						onEditClick = onEditProfileClick,
+						onLogoutClick = {
+							authViewModel.logout {
+								onLogoutClick()
+							}
 						}
-					}
-				}
-
-				item {
-					AppSectionHeader(title = "Achievements")
-					Spacer(modifier = Modifier.height(12.dp))
-					AchievementCard()
-				}
-
-				item {
-					Spacer(modifier = Modifier.height(8.dp))
-					Button(
-						onClick = {
-							navController.navigate(Screen.Login.route)
-						},
-						modifier = Modifier.fillMaxWidth(),
-						shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
-						colors = ButtonDefaults.buttonColors(
-							containerColor = MaterialTheme.colorScheme.error
-						)
-					) {
-						Text(
-							text = "Log Out",
-							fontWeight = FontWeight.Bold
-						)
-					}
+					)
 				}
 			}
 		}
@@ -160,158 +172,411 @@ fun ProfileScreen(
 }
 
 @Composable
-private fun ProfileHeader() {
-	AppCard(modifier = Modifier.fillMaxWidth()) {
+private fun ProfileHeroCard(
+	displayName: String,
+	email: String,
+	englishLevel: String
+) {
+	Card(
+		modifier = Modifier.fillMaxWidth(),
+		shape = RoundedCornerShape(30.dp),
+		colors = CardDefaults.cardColors(
+			containerColor = MaterialTheme.colorScheme.primary
+		),
+		elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+	) {
 		Row(
 			modifier = Modifier
 				.fillMaxWidth()
-				.padding(AppDimens.CardPadding),
+				.padding(22.dp),
 			verticalAlignment = Alignment.CenterVertically
 		) {
 			Box(
 				modifier = Modifier
 					.size(72.dp)
-					.background(
-						MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
-						CircleShape
-					),
-				contentAlignment = Alignment.Center
-			) {
-				Text(
-					text = "L",
-					style = MaterialTheme.typography.displaySmall,
-					color = MaterialTheme.colorScheme.primary
-				)
-			}
-			Spacer(modifier = Modifier.width(16.dp))
-			Column(modifier = Modifier.weight(1f)) {
-				Text(
-					text = "Linh Nguyen",
-					style = MaterialTheme.typography.titleLarge
-				)
-				Spacer(modifier = Modifier.height(4.dp))
-				Text(
-					text = "Level B1 - Intermediate",
-					style = MaterialTheme.typography.bodyMedium,
-					color = MaterialTheme.colorScheme.onSurfaceVariant
-				)
-			}
-		}
-	}
-}
-
-@Composable
-private fun LearningTargetCard() {
-	AppCard(modifier = Modifier.fillMaxWidth()) {
-		Column(modifier = Modifier.padding(AppDimens.CardPadding)) {
-			Text(
-				text = "Daily goal: 20 minutes",
-				style = MaterialTheme.typography.titleMedium
-			)
-			Spacer(modifier = Modifier.height(6.dp))
-			Text(
-				text = "You're on track to reach 5 hours this week.",
-				style = MaterialTheme.typography.bodyMedium,
-				color = MaterialTheme.colorScheme.onSurfaceVariant
-			)
-			Spacer(modifier = Modifier.height(14.dp))
-			LinearProgressIndicator(
-				progress = { 0.72f },
-				modifier = Modifier
-					.fillMaxWidth()
-					.height(8.dp),
-				color = MaterialTheme.colorScheme.primary,
-				trackColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
-			)
-			Spacer(modifier = Modifier.height(6.dp))
-			Text(
-				text = "72% weekly target completed",
-				style = MaterialTheme.typography.bodyMedium,
-				color = MaterialTheme.colorScheme.onSurfaceVariant
-			)
-		}
-	}
-}
-
-@Composable
-private fun ProfileStatCard(stat: ProfileStat, modifier: Modifier = Modifier) {
-	AppCard(modifier = modifier) {
-		Column(
-			modifier = Modifier.padding(AppDimens.CardPadding),
-			horizontalAlignment = Alignment.CenterHorizontally
-		) {
-			Icon(
-				imageVector = stat.icon,
-				contentDescription = null,
-				tint = stat.tint
-			)
-			Spacer(modifier = Modifier.height(8.dp))
-			Text(
-				text = stat.value,
-				style = MaterialTheme.typography.titleLarge
-			)
-			Text(
-				text = stat.label,
-				style = MaterialTheme.typography.bodyMedium,
-				color = MaterialTheme.colorScheme.onSurfaceVariant
-			)
-		}
-	}
-}
-
-@Composable
-private fun AchievementCard() {
-	AppCard(modifier = Modifier.fillMaxWidth()) {
-		Row(
-			modifier = Modifier
-				.fillMaxWidth()
-				.padding(AppDimens.CardPadding),
-			verticalAlignment = Alignment.CenterVertically
-		) {
-			Box(
-				modifier = Modifier
-					.size(52.dp)
-					.background(
-						MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
-						CircleShape
-					),
+					.clip(CircleShape)
+					.background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.18f)),
 				contentAlignment = Alignment.Center
 			) {
 				Icon(
-					imageVector = Icons.Default.EmojiEvents,
+					imageVector = Icons.Default.Person,
+					contentDescription = null,
+					tint = MaterialTheme.colorScheme.onPrimary,
+					modifier = Modifier.size(38.dp)
+				)
+			}
+
+			Spacer(modifier = Modifier.width(16.dp))
+
+			Column(
+				modifier = Modifier.weight(1f)
+			) {
+				Text(
+					text = if (displayName.isBlank()) "No name" else displayName,
+					style = MaterialTheme.typography.titleLarge,
+					color = MaterialTheme.colorScheme.onPrimary,
+					fontWeight = FontWeight.Bold
+				)
+
+				Spacer(modifier = Modifier.height(4.dp))
+
+				Text(
+					text = if (email.isBlank()) "No email" else email,
+					style = MaterialTheme.typography.bodyMedium,
+					color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.85f)
+				)
+
+				Spacer(modifier = Modifier.height(10.dp))
+
+				Box(
+					modifier = Modifier
+						.background(
+							color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.16f),
+							shape = RoundedCornerShape(50.dp)
+						)
+						.padding(horizontal = 12.dp, vertical = 6.dp)
+				) {
+					Text(
+						text = "Level $englishLevel",
+						style = MaterialTheme.typography.labelLarge,
+						color = MaterialTheme.colorScheme.onPrimary
+					)
+				}
+			}
+		}
+	}
+}
+
+@Composable
+private fun LevelProgressCard(
+	englishLevel: String,
+	progress: Float
+) {
+	Card(
+		modifier = Modifier.fillMaxWidth(),
+		shape = RoundedCornerShape(28.dp),
+		elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+	) {
+		Column(
+			modifier = Modifier.padding(20.dp),
+			verticalArrangement = Arrangement.spacedBy(14.dp)
+		) {
+			Row(
+				verticalAlignment = Alignment.CenterVertically
+			) {
+				Icon(
+					imageVector = Icons.Default.School,
 					contentDescription = null,
 					tint = MaterialTheme.colorScheme.primary
 				)
-			}
-			Spacer(modifier = Modifier.width(12.dp))
-			Column(modifier = Modifier.weight(1f)) {
+
+				Spacer(modifier = Modifier.width(10.dp))
+
 				Text(
-					text = "Vocabulary Master",
-					style = MaterialTheme.typography.titleMedium
+					text = "English Level",
+					style = MaterialTheme.typography.titleLarge,
+					fontWeight = FontWeight.SemiBold
 				)
-				Spacer(modifier = Modifier.height(4.dp))
+			}
+
+			Text(
+				text = getLevelTitle(englishLevel),
+				style = MaterialTheme.typography.headlineSmall,
+				color = MaterialTheme.colorScheme.primary,
+				fontWeight = FontWeight.Bold
+			)
+
+			LinearProgressIndicator(
+				progress = { progress },
+				modifier = Modifier
+					.fillMaxWidth()
+					.height(10.dp),
+				trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+			)
+
+			Text(
+				text = getLevelDescription(englishLevel),
+				style = MaterialTheme.typography.bodyMedium,
+				color = MaterialTheme.colorScheme.onSurfaceVariant
+			)
+		}
+	}
+}
+
+@Composable
+private fun LearningGoalCard(
+	learningGoal: String,
+	dailyNewWordTarget: String,
+	dailyReviewTarget: String
+) {
+	Card(
+		modifier = Modifier.fillMaxWidth(),
+		shape = RoundedCornerShape(28.dp),
+		elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+	) {
+		Column(
+			modifier = Modifier.padding(20.dp),
+			verticalArrangement = Arrangement.spacedBy(14.dp)
+		) {
+			Row(
+				verticalAlignment = Alignment.CenterVertically
+			) {
+				Icon(
+					imageVector = Icons.Default.TrackChanges,
+					contentDescription = null,
+					tint = MaterialTheme.colorScheme.primary
+				)
+
+				Spacer(modifier = Modifier.width(10.dp))
+
 				Text(
-					text = "Completed 10 vocabulary sets",
-					style = MaterialTheme.typography.bodyMedium,
-					color = MaterialTheme.colorScheme.onSurfaceVariant
+					text = "Learning Goal",
+					style = MaterialTheme.typography.titleLarge,
+					fontWeight = FontWeight.SemiBold
+				)
+			}
+
+			Text(
+				text = if (learningGoal.isBlank()) "No goal set yet" else learningGoal,
+				style = MaterialTheme.typography.bodyLarge
+			)
+
+			Row(
+				modifier = Modifier.fillMaxWidth(),
+				horizontalArrangement = Arrangement.spacedBy(12.dp)
+			) {
+				GoalMiniCard(
+					title = "New Words",
+					value = dailyNewWordTarget,
+					icon = Icons.Default.Flag,
+					modifier = Modifier.weight(1f)
+				)
+
+				GoalMiniCard(
+					title = "Reviews",
+					value = dailyReviewTarget,
+					icon = Icons.Default.Timer,
+					modifier = Modifier.weight(1f)
 				)
 			}
 		}
 	}
 }
 
-private data class ProfileStat(
-	val label: String,
-	val value: String,
-	val icon: androidx.compose.ui.graphics.vector.ImageVector,
-	val tint: Color
-)
-
-@Preview(showBackground = true, showSystemUi = true)
 @Composable
-fun ProfileScreenPreview() {
-	ProjectEnlishLearningTheme {
-		ProfileScreen(navController = rememberNavController())
+private fun GoalMiniCard(
+	title: String,
+	value: String,
+	icon: ImageVector,
+	modifier: Modifier = Modifier
+) {
+	Box(
+		modifier = modifier
+			.background(
+				color = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
+				shape = RoundedCornerShape(20.dp)
+			)
+			.padding(14.dp)
+	) {
+		Column {
+			Icon(
+				imageVector = icon,
+				contentDescription = null,
+				tint = MaterialTheme.colorScheme.primary
+			)
+
+			Spacer(modifier = Modifier.height(10.dp))
+
+			Text(
+				text = value,
+				style = MaterialTheme.typography.titleLarge,
+				fontWeight = FontWeight.Bold
+			)
+
+			Text(
+				text = "$title/day",
+				style = MaterialTheme.typography.bodySmall,
+				color = MaterialTheme.colorScheme.onSurfaceVariant
+			)
+		}
 	}
 }
 
+@Composable
+private fun ProfileInfoCard(
+	email: String,
+	englishLevel: String,
+	learningGoal: String
+) {
+	Card(
+		modifier = Modifier.fillMaxWidth(),
+		shape = RoundedCornerShape(28.dp),
+		elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+	) {
+		Column(
+			modifier = Modifier.padding(20.dp),
+			verticalArrangement = Arrangement.spacedBy(16.dp)
+		) {
+			Text(
+				text = "Account Information",
+				style = MaterialTheme.typography.titleLarge,
+				fontWeight = FontWeight.SemiBold
+			)
+
+			InfoRow(
+				icon = Icons.Default.Email,
+				title = "Email",
+				value = if (email.isBlank()) "No email" else email
+			)
+
+			InfoRow(
+				icon = Icons.Default.School,
+				title = "Level",
+				value = englishLevel
+			)
+
+			InfoRow(
+				icon = Icons.Default.TrackChanges,
+				title = "Goal",
+				value = if (learningGoal.isBlank()) "No goal" else learningGoal
+			)
+		}
+	}
+}
+
+@Composable
+private fun InfoRow(
+	icon: ImageVector,
+	title: String,
+	value: String
+) {
+	Row(
+		modifier = Modifier.fillMaxWidth(),
+		verticalAlignment = Alignment.CenterVertically
+	) {
+		Box(
+			modifier = Modifier
+				.background(
+					color = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f),
+					shape = RoundedCornerShape(16.dp)
+				)
+				.padding(10.dp)
+		) {
+			Icon(
+				imageVector = icon,
+				contentDescription = null,
+				tint = MaterialTheme.colorScheme.primary
+			)
+		}
+
+		Spacer(modifier = Modifier.width(14.dp))
+
+		Column(
+			modifier = Modifier.weight(1f)
+		) {
+			Text(
+				text = title,
+				style = MaterialTheme.typography.bodySmall,
+				color = MaterialTheme.colorScheme.onSurfaceVariant
+			)
+
+			Text(
+				text = value,
+				style = MaterialTheme.typography.bodyLarge,
+				fontWeight = FontWeight.Medium
+			)
+		}
+	}
+}
+
+@Composable
+private fun ProfileActionsCard(
+	onEditClick: () -> Unit,
+	onLogoutClick: () -> Unit
+) {
+	Card(
+		modifier = Modifier.fillMaxWidth(),
+		shape = RoundedCornerShape(28.dp),
+		elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+	) {
+		Column(
+			modifier = Modifier.padding(20.dp),
+			verticalArrangement = Arrangement.spacedBy(12.dp)
+		) {
+			Text(
+				text = "Actions",
+				style = MaterialTheme.typography.titleLarge,
+				fontWeight = FontWeight.SemiBold
+			)
+
+			Button(
+				onClick = onEditClick,
+				modifier = Modifier.fillMaxWidth(),
+				shape = RoundedCornerShape(18.dp)
+			) {
+				Icon(
+					imageVector = Icons.Default.Edit,
+					contentDescription = null
+				)
+
+				Spacer(modifier = Modifier.width(8.dp))
+
+				Text("Edit Profile")
+			}
+
+			OutlinedButton(
+				onClick = onLogoutClick,
+				modifier = Modifier.fillMaxWidth(),
+				shape = RoundedCornerShape(18.dp),
+				colors = ButtonDefaults.outlinedButtonColors(
+					contentColor = MaterialTheme.colorScheme.error
+				)
+			) {
+				Icon(
+					imageVector = Icons.Default.Logout,
+					contentDescription = null
+				)
+
+				Spacer(modifier = Modifier.width(8.dp))
+
+				Text("Logout")
+			}
+		}
+	}
+}
+
+private fun getLevelProgress(level: String): Float {
+	return when (level.uppercase()) {
+		"A1" -> 0.15f
+		"A2" -> 0.30f
+		"B1" -> 0.50f
+		"B2" -> 0.68f
+		"C1" -> 0.85f
+		"C2" -> 1.0f
+		else -> 0.15f
+	}
+}
+
+private fun getLevelTitle(level: String): String {
+	return when (level.uppercase()) {
+		"A1" -> "Beginner"
+		"A2" -> "Elementary"
+		"B1" -> "Intermediate"
+		"B2" -> "Upper Intermediate"
+		"C1" -> "Advanced"
+		"C2" -> "Proficient"
+		else -> "Beginner"
+	}
+}
+
+private fun getLevelDescription(level: String): String {
+	return when (level.uppercase()) {
+		"A1" -> "You are starting with basic English words and phrases."
+		"A2" -> "You can understand simple sentences and common expressions."
+		"B1" -> "You can communicate in daily situations with confidence."
+		"B2" -> "You can understand complex texts and express ideas clearly."
+		"C1" -> "You can use English fluently in study and work contexts."
+		"C2" -> "You can understand and use English almost like a native speaker."
+		else -> "You are starting with basic English words and phrases."
+	}
+}

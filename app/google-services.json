@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "330755271275",
+    "project_id": "enlishlearning-7e30f",
+    "storage_bucket": "enlishlearning-7e30f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:330755271275:android:ac6b445cde145ba95fdf2e",
+        "android_client_info": {
+          "package_name": "com.example.project_enlishlearning"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "330755271275-4klf8tdb691kgd62ss9po31ge3k3s7ht.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.project_enlishlearning",
+            "certificate_hash": "e724da92c233a154b38c61cb17536726725aa849"
+          }
+        },
+        {
+          "client_id": "330755271275-83ou1449iqobacau0ib8mkm37bb35n9u.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBA-KO-EtpeWqYyY3N_2ep1gs65XjTgyGU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "330755271275-83ou1449iqobacau0ib8mkm37bb35n9u.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

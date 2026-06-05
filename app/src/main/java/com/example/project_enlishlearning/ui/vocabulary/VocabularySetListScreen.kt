@@ -1,12 +1,12 @@
 package com.example.project_enlishlearning.ui.vocabulary
 
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import android.app.Application
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,13 +18,15 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Book
+import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -32,25 +34,34 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.project_enlishlearning.data.local.entity.VocabularySetEntity
+import com.example.project_enlishlearning.navigation.Screen
 import com.example.project_enlishlearning.ui.components.AppCard
 import com.example.project_enlishlearning.ui.components.AppGradientBackground
-import com.example.project_enlishlearning.ui.components.AppTagChip
 import com.example.project_enlishlearning.ui.components.AppTextField
 import com.example.project_enlishlearning.ui.components.AppToolbar
 import com.example.project_enlishlearning.ui.components.BottomNavItem
@@ -58,61 +69,56 @@ import com.example.project_enlishlearning.ui.components.BottomNavigationBar
 import com.example.project_enlishlearning.ui.components.PrimaryButton
 import com.example.project_enlishlearning.ui.theme.AppDimens
 import com.example.project_enlishlearning.ui.theme.ProjectEnlishLearningTheme
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import com.example.project_enlishlearning.navigation.Screen
+import com.example.project_enlishlearning.utils.constants.SET_ACTION_RESULT
+import com.example.project_enlishlearning.utils.constants.SetAction
+import com.example.project_enlishlearning.viewmodel.VocabularyViewModel
+import kotlinx.coroutines.launch
+import com.example.project_enlishlearning.ui.components.SecondaryButton
 
-data class VocabularySet(
-    val title: String,
-    val description: String,
-    val totalWords: Int,
-    val tags: List<String>,
-    val progress: Int
-)
-
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun VocabularySetListScreen(
     navController: NavController,
     selected: BottomNavItem = BottomNavItem.Vocabulary,
-    onBottomItemSelected: (BottomNavItem) -> Unit = {}
+    onBottomItemSelected: (BottomNavItem) -> Unit = {},
+    viewModel: VocabularyViewModel = viewModel(
+        factory = ViewModelProvider.AndroidViewModelFactory.getInstance(
+            LocalContext.current.applicationContext as Application
+        )
+    )
 ) {
     var search by remember { mutableStateOf("") }
+    val vocabularySets by viewModel.vocabularySets.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
-    val vocabularySets = remember {
-        mutableStateListOf(
-            VocabularySet(
-                title = "IELTS Academic Vocabulary",
-                description = "Common academic vocabulary for IELTS Reading and Writing.",
-                totalWords = 120,
-                tags = listOf("IELTS", "Academic"),
-                progress = 75
-            ),
-            VocabularySet(
-                title = "Business English",
-                description = "Vocabulary for meetings, emails, and office communication.",
-                totalWords = 85,
-                tags = listOf("Business"),
-                progress = 45
-            ),
-            VocabularySet(
-                title = "Travel Vocabulary",
-                description = "Useful words and phrases when traveling abroad.",
-                totalWords = 60,
-                tags = listOf("Travel", "Daily Life"),
-                progress = 90
-            ),
-            VocabularySet(
-                title = "TOEIC Listening",
-                description = "Important TOEIC listening keywords and collocations.",
-                totalWords = 140,
-                tags = listOf("TOEIC"),
-                progress = 30
-            )
-        )
+    LaunchedEffect(Unit) {
+        val result = navController.currentBackStackEntry
+            ?.savedStateHandle
+            ?.get<SetAction>(SET_ACTION_RESULT)
+
+        when (result) {
+            SetAction.CREATED ->
+                snackbarHostState.showSnackbar(
+                    "Vocabulary set created successfully"
+                )
+
+            SetAction.UPDATED ->
+                snackbarHostState.showSnackbar(
+                    "Vocabulary set updated successfully"
+                )
+
+            else -> {}
+        }
+
+        navController.currentBackStackEntry
+            ?.savedStateHandle
+            ?.remove<SetAction>(SET_ACTION_RESULT)
     }
 
     Scaffold(
+        snackbarHost = {
+            SnackbarHost(snackbarHostState)
+        },
         topBar = {
             AppToolbar(
                 title = "Vocabulary Sets",
@@ -142,6 +148,8 @@ fun VocabularySetListScreen(
             }
         }
     ) { innerPadding ->
+        val filteredSets = vocabularySets.filter { it.title.contains(search, ignoreCase = true) }
+
         AppGradientBackground(
             modifier = Modifier
                 .fillMaxSize()
@@ -149,7 +157,7 @@ fun VocabularySetListScreen(
         ) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                contentPadding = PaddingValues(
                     start = AppDimens.ScreenPadding,
                     end = AppDimens.ScreenPadding,
                     top = 12.dp,
@@ -158,33 +166,149 @@ fun VocabularySetListScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 item {
-                    AppTextField(
-                        value = search,
-                        onValueChange = { search = it },
-                        label = "Search",
-                        placeholder = "Search vocabulary set...",
-                        leadingIcon = Icons.Default.Search
-                    )
+                    AppCard(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        AppTextField(
+                            value = search,
+                            onValueChange = { search = it },
+                            label = "Search",
+                            placeholder = "Search vocabulary set...",
+                            leadingIcon = Icons.Default.Search,
+                            modifier = Modifier.padding(AppDimens.CardPadding)
+                        )
+                    }
                 }
 
-                items(vocabularySets.filter { it.title.contains(search, true) }) { item ->
-                    VocabularySetCard(item, navController)
+                if (filteredSets.isEmpty()) {
+                    item {
+                        EmptySetListView(
+                            onCreateSet = {
+                                navController.navigate(Screen.CreateSet.route)
+                            }
+                        )
+                    }
+                } else {
+                    items(filteredSets, key = { it.setId }) { item ->
+                        VocabularySetCard(
+                            item = item,
+                            navController = navController,
+                            onContinueClick = {
+                                when {
+                                    item.progress <= 0 -> {
+                                        scope.launch {
+                                            snackbarHostState.showSnackbar(
+                                                "Bạn chưa học bộ này. Hãy bắt đầu học trước."
+                                            )
+                                        }
+                                    }
+
+                                    item.progress >= 100 -> {
+                                        scope.launch {
+                                            snackbarHostState.showSnackbar(
+                                                "Bạn đã học xong bộ này rồi. Nếu muốn học lại, hãy bấm Start New Learning."
+                                            )
+                                        }
+                                    }
+
+                                    else -> {
+                                        navController.navigate(
+                                            Screen.FlashcardLearning.createRoute(
+                                                setId = item.setId,
+                                                mode = "continue"
+                                            )
+                                        )
+                                    }
+                                }
+                            },
+                            onDeleteClick = {
+                                viewModel.deleteVocabularySet(item)
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(
+                                        "Vocabulary set deleted successfully"
+                                    )
+                                }
+                            }
+                        )
+                    }
                 }
             }
         }
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun EmptySetListView(
+    onCreateSet: () -> Unit
+) {
+    AppCard(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier
+                .padding(AppDimens.CardPadding)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+
+            Box(
+                modifier = Modifier
+                    .size(64.dp)
+                    .background(
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                        CircleShape
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Folder,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text(
+                text = "No vocabulary sets",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+
+            Spacer(modifier = Modifier.height(6.dp))
+
+            Text(
+                text = "Create your first set to organize your vocabulary.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            PrimaryButton(
+                text = "Create first set",
+                onClick = onCreateSet,
+                leadingIcon = Icons.Default.Add,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+    }
+}
+
 @Composable
 private fun VocabularySetCard(
-    item: VocabularySet,
-    navController: NavController
+    item: VocabularySetEntity,
+    navController: NavController,
+    onContinueClick: () -> Unit,
+    onDeleteClick: () -> Unit
 ) {
+    var expanded by remember { mutableStateOf(false) }
+    var confirmDelete by remember { mutableStateOf(false) }
+
     AppCard(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { }
+            .clickable {
+                navController.navigate("${Screen.VocabularySetDetail.route}/${item.setId}")
+            }
     ) {
         Column(modifier = Modifier.padding(AppDimens.CardPadding)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -221,12 +345,8 @@ private fun VocabularySetCard(
                     )
                 }
 
-                var expanded by remember { mutableStateOf(false) }
-
                 Box {
-                    IconButton(
-                        onClick = { expanded = true }
-                    ) {
+                    IconButton(onClick = { expanded = true }) {
                         Icon(
                             imageVector = Icons.Default.MoreVert,
                             contentDescription = null
@@ -240,22 +360,22 @@ private fun VocabularySetCard(
                         DropdownMenuItem(
                             text = { Text("View set") },
                             onClick = {
-                                navController.navigate(Screen.VocabularySetDetail.route)
+                                expanded = false
+                                navController.navigate("${Screen.VocabularySetDetail.route}/${item.setId}")
                             }
                         )
-
                         DropdownMenuItem(
-                            text = { Text("Edit Set") },
-                            onClick = {
-                                navController.navigate(Screen.EditVocabularySet.route)
-                            }
-                        )
-
-                        DropdownMenuItem(
-                            text = { Text("Delete Set") },
+                            text = { Text("Edit set") },
                             onClick = {
                                 expanded = false
-                                // Handle delete
+                                navController.navigate("${Screen.EditVocabularySet.route}/${item.setId}")
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Delete set") },
+                            onClick = {
+                                expanded = false
+                                confirmDelete = true
                             }
                         )
                     }
@@ -269,17 +389,6 @@ private fun VocabularySetCard(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                item.tags.forEach { tag ->
-                    AppTagChip(text = tag)
-                }
-            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -311,13 +420,54 @@ private fun VocabularySetCard(
             Spacer(modifier = Modifier.height(16.dp))
 
             PrimaryButton(
-                text = "Start Learning",
+                text = "Start New Learning",
                 onClick = {
-                    navController.navigate(Screen.NewWordsPreview.route)
+                    navController.navigate("${Screen.NewWordsPreview.route}/${item.setId}")
+                },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+
+            SecondaryButton(
+                text = "Continue Learning",
+                onClick = onContinueClick,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+
+            SecondaryButton(
+                text = "Review Difficult Words",
+                onClick = {
+                    navController.navigate(
+                        Screen.ReviewVocabulary.createRoute(item.setId)
+                    )
                 },
                 modifier = Modifier.fillMaxWidth()
             )
         }
+    }
+
+    if (confirmDelete) {
+        AlertDialog(
+            onDismissRequest = { confirmDelete = false },
+            title = { Text("Delete set?") },
+            text = { Text("This will remove the vocabulary set and all of its words.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        confirmDelete = false
+                        onDeleteClick()
+                    }
+                ) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmDelete = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }
 

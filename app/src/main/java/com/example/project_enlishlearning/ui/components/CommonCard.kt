@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -36,10 +37,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.project_enlishlearning.ui.theme.AppDimens
 import com.example.project_enlishlearning.ui.theme.GradientEnd
 import com.example.project_enlishlearning.ui.theme.GradientStart
+import com.example.project_enlishlearning.ui.theme.OnSurface
 
 @Composable
 fun AppGradientBackground(
@@ -85,9 +88,12 @@ fun PrimaryButton(
 ) {
 	Button(
 		onClick = onClick,
-		modifier = modifier.height(AppDimens.ButtonHeight),
+		modifier = modifier
+			.height(AppDimens.ButtonHeight)
+			.fillMaxWidth(),
 		shape = RoundedCornerShape(AppDimens.ButtonRadius),
 		enabled = enabled,
+		contentPadding = PaddingValues(horizontal = 8.dp),
 		colors = ButtonDefaults.buttonColors(
 			containerColor = MaterialTheme.colorScheme.primary,
 			contentColor = MaterialTheme.colorScheme.onPrimary
@@ -101,7 +107,12 @@ fun PrimaryButton(
 			)
 			Spacer(modifier = Modifier.size(8.dp))
 		}
-		Text(text = text, style = MaterialTheme.typography.labelLarge)
+		Text(
+			text = text,
+			style = MaterialTheme.typography.labelLarge,
+			maxLines = 1,
+			overflow = TextOverflow.Ellipsis
+		)
 	}
 }
 
@@ -114,8 +125,11 @@ fun SecondaryButton(
 ) {
 	OutlinedButton(
 		onClick = onClick,
-		modifier = modifier.height(AppDimens.ButtonHeight),
-		shape = RoundedCornerShape(AppDimens.ButtonRadius)
+		modifier = modifier
+			.height(AppDimens.ButtonHeight)
+			.fillMaxWidth(),
+		shape = RoundedCornerShape(AppDimens.ButtonRadius),
+		contentPadding = PaddingValues(horizontal = 8.dp)
 	) {
 		if (leadingIcon != null) {
 			Icon(
@@ -125,7 +139,12 @@ fun SecondaryButton(
 			)
 			Spacer(modifier = Modifier.size(8.dp))
 		}
-		Text(text = text, style = MaterialTheme.typography.labelLarge)
+		Text(
+			text = text,
+			style = MaterialTheme.typography.labelLarge,
+			maxLines = 1,
+			overflow = TextOverflow.Ellipsis
+		)
 	}
 }
 
@@ -158,6 +177,8 @@ fun AppTextField(
 		visualTransformation = visualTransformation,
 		shape = RoundedCornerShape(AppDimens.FieldRadius),
 		colors = OutlinedTextFieldDefaults.colors(
+			focusedTextColor = OnSurface,
+			unfocusedTextColor = OnSurface,
 			focusedBorderColor = MaterialTheme.colorScheme.primary,
 			unfocusedBorderColor = MaterialTheme.colorScheme.outline,
 			focusedLabelColor = MaterialTheme.colorScheme.primary,
