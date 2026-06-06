@@ -4,7 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.project_enlishlearning.data.repository.DashboardRepository
+import com.example.project_enlishlearning.data.repository.DailyReviewCount
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
 class DashboardViewModel(
@@ -34,6 +37,16 @@ class DashboardViewModel(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
     val reviewDueToday = repository.getReviewDueToday(userId)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
+    val weeklyReviewCounts: kotlinx.coroutines.flow.StateFlow<List<DailyReviewCount>> =
+        repository.getWeeklyReviewCounts(userId)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val retentionRate = repository.getRetentionRate(userId)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0f)
+
+    val learningStreak = repository.getLearningStreak(userId)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 }
 

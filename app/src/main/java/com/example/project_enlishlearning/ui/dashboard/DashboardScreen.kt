@@ -3,6 +3,7 @@ package com.example.project_enlishlearning.ui.dashboard
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -39,17 +40,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.project_enlishlearning.data.repository.DashboardRepository
+import com.example.project_enlishlearning.data.repository.DailyReviewCount
 import com.example.project_enlishlearning.ui.components.AppToolbar
 import com.example.project_enlishlearning.ui.components.BottomNavItem
 import com.example.project_enlishlearning.ui.components.BottomNavigationBar
-import com.example.project_enlishlearning.ui.theme.ProjectEnlishLearningTheme
-import com.example.project_enlishlearning.viewmodel.AuthViewModel
 import com.example.project_enlishlearning.viewmodel.DashboardViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlin.math.roundToInt
 
 @Composable
 fun DashboardScreen(
@@ -67,6 +65,9 @@ fun DashboardScreen(
     val reviewingWords by viewModel.reviewingWords.collectAsState()
     val masteredWords by viewModel.masteredWords.collectAsState()
     val reviewDueToday by viewModel.reviewDueToday.collectAsState()
+    val weeklyReviewCounts by viewModel.weeklyReviewCounts.collectAsState()
+    val retentionRate by viewModel.retentionRate.collectAsState()
+    val learningStreak by viewModel.learningStreak.collectAsState()
 
     val totalProgressWords = newWords + learningWords + reviewingWords + masteredWords
     val masteredProgress = if (totalProgressWords > 0) {
@@ -75,7 +76,7 @@ fun DashboardScreen(
         0f
     }
 
-    Scaffold (
+    Scaffold(
         topBar = {
             AppToolbar(
                 title = "Dashboard",
@@ -114,6 +115,29 @@ fun DashboardScreen(
                     TodayReviewCard(
                         reviewDueToday = reviewDueToday,
                         onStartClick = onFlashcardClick
+                    )
+                }
+
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        LearningStreakCard(
+                            streakDays = learningStreak,
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        RetentionRateCard(
+                            retentionRate = retentionRate,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                }
+
+                item {
+                    DailyActivityChartCard(
+                        dailyCounts = weeklyReviewCounts
                     )
                 }
 
@@ -168,7 +192,6 @@ fun DashboardScreen(
                         masteredProgress = masteredProgress
                     )
                 }
-
             }
         }
     }
@@ -311,7 +334,7 @@ private fun ProgressOverviewCard(
             )
 
             LinearProgressIndicator(
-                progress = { masteredProgress },
+                progress = { masteredProgress.coerceIn(0f, 1f) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(10.dp),
@@ -326,6 +349,187 @@ private fun ProgressOverviewCard(
                 ProgressText("Learning", learningWords)
                 ProgressText("Reviewing", reviewingWords)
                 ProgressText("Mastered", masteredWords)
+            }
+        }
+    }
+}
+
+@Composable
+private fun LearningStreakCard(
+    streakDays: Int,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(24.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+
+                Spacer(modifier = Modifier.width(10.dp))
+
+                Text(
+                    text = "Learning Streak",
+                    style = MaterialTheme.typography.titleMedium
+                )
+            }
+
+            Text(
+                text = "$streakDays days",
+                style = MaterialTheme.typography.headlineMedium
+            )
+
+            Text(
+                text = "Keep your daily momentum going.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+private fun RetentionRateCard(
+    retentionRate: Float,
+    modifier: Modifier = Modifier
+) {
+    val percentage = (retentionRate.coerceIn(0f, 1f) * 100).roundToInt()
+
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(24.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                text = "Retention Rate",
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            Text(
+                text = "$percentage%",
+                style = MaterialTheme.typography.headlineLarge
+            )
+
+            LinearProgressIndicator(
+                progress = { retentionRate.coerceIn(0f, 1f) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(10.dp),
+                trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+            )
+
+            Text(
+                text = "Correct recall across all reviews.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+private fun DailyActivityChartCard(
+    dailyCounts: List<DailyReviewCount>
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(28.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            Text(
+                text = "Weekly Activity",
+                style = MaterialTheme.typography.titleLarge
+            )
+
+            if (dailyCounts.isEmpty()) {
+                Text(
+                    text = "No review activity recorded this week.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            } else {
+                val maxCount = dailyCounts.maxOf { it.reviewCount }.coerceAtLeast(1)
+
+                BoxWithConstraints(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .align(Alignment.BottomStart),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        dailyCounts.forEach { day ->
+                            val barHeightRatio =
+                                (day.reviewCount.toFloat() / maxCount.toFloat())
+                                    .coerceIn(0f, 1f)
+
+                            Column(
+                                modifier = Modifier.weight(1f),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Bottom
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .width(18.dp)
+                                        .height((120.dp * barHeightRatio).coerceAtLeast(8.dp))
+                                        .background(
+                                            color = MaterialTheme.colorScheme.primary,
+                                            shape = RoundedCornerShape(12.dp)
+                                        )
+                                )
+
+                                Spacer(modifier = Modifier.height(8.dp))
+
+                                Text(
+                                    text = day.day.takeLast(2),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    dailyCounts.forEach { day ->
+                        Text(
+                            text = day.reviewCount.toString(),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
             }
         }
     }

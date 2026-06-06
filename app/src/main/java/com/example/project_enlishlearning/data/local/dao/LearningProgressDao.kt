@@ -4,8 +4,10 @@ import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Upsert
 import com.example.project_enlishlearning.data.local.entity.LearningProgressEntity
-import kotlinx.coroutines.flow.Flow
 import com.example.project_enlishlearning.data.local.entity.VocabularyWordEntity
+import com.example.project_enlishlearning.data.repository.DailyReviewCount
+import kotlinx.coroutines.flow.Flow
+
 @Dao
 interface LearningProgressDao {
 
@@ -80,6 +82,20 @@ interface LearningProgressDao {
         userId: String,
         currentTime: Long = System.currentTimeMillis()
     ): Int
+
+    @Query("""
+        SELECT strftime('%Y-%m-%d', lastReviewedAt / 1000, 'unixepoch', 'localtime') AS day,
+               COUNT(*) AS reviewCount
+        FROM learning_progress
+        WHERE userId = :userId
+          AND lastReviewedAt >= :minTime
+        GROUP BY day
+        ORDER BY day ASC
+    """)
+    fun getDailyReviewCounts(
+        userId: String,
+        minTime: Long
+    ): Flow<List<DailyReviewCount>>
 
     @Query("""
         SELECT vw.* FROM vocabulary_words vw
