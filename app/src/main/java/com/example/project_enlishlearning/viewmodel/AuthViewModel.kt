@@ -1,16 +1,57 @@
 package com.example.project_enlishlearning.viewmodel
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.project_enlishlearning.data.local.entity.UserProfileEntity
 import com.example.project_enlishlearning.data.repository.AuthRepository
+import com.example.project_enlishlearning.data.repository.UserProfileRepository
+import com.example.project_enlishlearning.utils.DatabaseProvider
+import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.launch
 
 class AuthViewModel : ViewModel() {
 
     private val repository = AuthRepository()
+    private val userProfileRepository by lazy {
+        UserProfileRepository(DatabaseProvider.getDatabase().userProfileDao())
+    }
+
+    private suspend fun syncUserProfile(user: FirebaseUser, isRegistration: Boolean) {
+        val uid = user.uid
+        val email = user.email ?: ""
+
+        if (isRegistration) {
+            Log.d("AUTH", "Registration success: UID = $uid, email = $email")
+        } else {
+            Log.d("AUTH", "Login success: UID = $uid, email = $email")
+        }
+
+        try {
+            val existingProfile = userProfileRepository.getProfileOneShot(uid)
+            if (existingProfile == null) {
+                val displayName = email.substringBefore("@")
+                val newProfile = UserProfileEntity(
+                    userId = uid,
+                    email = email,
+                    displayName = displayName,
+                    englishLevel = "A1",
+                    learningGoal = "",
+                    dailyNewWordTarget = 10,
+                    dailyReviewTarget = 20
+                )
+                userProfileRepository.saveProfile(newProfile)
+                Log.d("AUTH", "Profile created: UID = $uid")
+            } else {
+                Log.d("AUTH", "Existing profile found: UID = $uid")
+            }
+        } catch (e: Exception) {
+            Log.e("AUTH", "Failed to sync user profile: ${e.message}", e)
+        }
+    }
 
     var loading by mutableStateOf(false)
         private set
@@ -38,7 +79,10 @@ class AuthViewModel : ViewModel() {
                 email,
                 password
             )
-                .onSuccess {
+                .onSuccess { firebaseUser ->
+                    if (firebaseUser != null) {
+                        syncUserProfile(firebaseUser, isRegistration = true)
+                    }
                     repository.sendEmailVerification()
                     onSuccess()
                 }
@@ -64,7 +108,10 @@ class AuthViewModel : ViewModel() {
                 email,
                 password
             )
-                .onSuccess {
+                .onSuccess { firebaseUser ->
+                    if (firebaseUser != null) {
+                        syncUserProfile(firebaseUser, isRegistration = false)
+                    }
                     onSuccess()
                 }
                 .onFailure {
@@ -146,8 +193,10 @@ class AuthViewModel : ViewModel() {
 
             repository
                 .loginWithGoogle(idToken)
-                .onSuccess {
-
+                .onSuccess { firebaseUser ->
+                    if (firebaseUser != null) {
+                        syncUserProfile(firebaseUser, isRegistration = false)
+                    }
                     onSuccess()
                 }
                 .onFailure {

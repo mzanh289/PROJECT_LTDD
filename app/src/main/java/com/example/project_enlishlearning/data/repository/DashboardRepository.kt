@@ -2,6 +2,7 @@ package com.example.project_enlishlearning.data.repository
 
 import com.example.project_enlishlearning.data.local.dao.LearningProgressDao
 import com.example.project_enlishlearning.data.local.dao.VocabularyDao
+import com.example.project_enlishlearning.utils.FirebaseManager
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
@@ -18,35 +19,43 @@ class DashboardRepository(
 ) {
 
     fun getTotalVocabularySets(userId: String): Flow<Int> {
-        return vocabularyDao.countVocabularySets()
+        val uid = FirebaseManager.auth.currentUser?.uid ?: userId
+        return vocabularyDao.countVocabularySets(uid)
     }
 
     fun getTotalVocabularyWords(userId: String): Flow<Int> {
-        return vocabularyDao.countVocabularyWords()
+        val uid = FirebaseManager.auth.currentUser?.uid ?: userId
+        return vocabularyDao.countVocabularyWords(uid)
     }
 
     fun getTotalLearningWords(userId: String): Flow<Int> {
-        return learningProgressDao.countAllLearningWords(userId)
+        val uid = FirebaseManager.auth.currentUser?.uid ?: userId
+        return learningProgressDao.countAllLearningWords(uid)
     }
 
     fun getNewWords(userId: String): Flow<Int> {
-        return learningProgressDao.countNewWords(userId)
+        val uid = FirebaseManager.auth.currentUser?.uid ?: userId
+        return learningProgressDao.countNewWords(uid)
     }
 
     fun getLearningWords(userId: String): Flow<Int> {
-        return learningProgressDao.countLearningWords(userId)
+        val uid = FirebaseManager.auth.currentUser?.uid ?: userId
+        return learningProgressDao.countLearningWords(uid)
     }
 
     fun getReviewingWords(userId: String): Flow<Int> {
-        return learningProgressDao.countReviewingWords(userId)
+        val uid = FirebaseManager.auth.currentUser?.uid ?: userId
+        return learningProgressDao.countReviewingWords(uid)
     }
 
     fun getMasteredWords(userId: String): Flow<Int> {
-        return learningProgressDao.countMasteredWords(userId)
+        val uid = FirebaseManager.auth.currentUser?.uid ?: userId
+        return learningProgressDao.countMasteredWords(uid)
     }
 
     fun getReviewDueToday(userId: String): Flow<Int> {
-        return learningProgressDao.countReviewDueToday(userId)
+        val uid = FirebaseManager.auth.currentUser?.uid ?: userId
+        return learningProgressDao.countReviewDueToday(uid)
     }
 
     fun getWeeklyReviewCounts(userId: String): Flow<List<DailyReviewCount>> {

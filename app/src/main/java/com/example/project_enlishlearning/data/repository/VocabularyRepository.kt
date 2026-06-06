@@ -7,6 +7,7 @@ import com.example.project_enlishlearning.data.importexport.VocabularyImportPars
 import com.example.project_enlishlearning.data.local.dao.VocabularyDao
 import com.example.project_enlishlearning.data.local.entity.VocabularySetEntity
 import com.example.project_enlishlearning.data.local.entity.VocabularyWordEntity
+import com.example.project_enlishlearning.utils.FirebaseManager
 import kotlinx.coroutines.flow.Flow
 import java.io.InputStream
 
@@ -15,20 +16,26 @@ class VocabularyRepository(
     private val importParser: VocabularyImportParser,
     private val exportFormatter: VocabularyExportFormatter
 ) {
+    private val currentUserId: String
+        get() = FirebaseManager.auth.currentUser?.uid ?: ""
+
     fun getAllSetsByUserId(userId: String): Flow<List<VocabularySetEntity>> {
-        return vocabularyDao.getAllSetsByUserId(userId)
+        val uid = FirebaseManager.auth.currentUser?.uid ?: userId
+        return vocabularyDao.getAllSetsByUserId(uid)
     }
 
     fun getWordsBySetId(setId: Int): Flow<List<VocabularyWordEntity>> {
-        return vocabularyDao.getWordsBySetId(setId)
+        return vocabularyDao.getWordsBySetIdAndUserId(setId, currentUserId)
     }
 
     suspend fun insertSet(set: VocabularySetEntity): Long {
-        return vocabularyDao.insertSet(set)
+        val uid = FirebaseManager.auth.currentUser?.uid ?: set.userId
+        return vocabularyDao.insertSet(set.copy(userId = uid))
     }
 
     suspend fun updateSet(set: VocabularySetEntity): Int {
-        return vocabularyDao.updateSet(set)
+        val uid = FirebaseManager.auth.currentUser?.uid ?: set.userId
+        return vocabularyDao.updateSet(set.copy(userId = uid))
     }
 
     suspend fun deleteSet(set: VocabularySetEntity): Int {
@@ -36,11 +43,13 @@ class VocabularyRepository(
     }
 
     suspend fun insertWord(word: VocabularyWordEntity): Long {
-        return vocabularyDao.insertWord(word)
+        val uid = FirebaseManager.auth.currentUser?.uid ?: word.userId
+        return vocabularyDao.insertWord(word.copy(userId = uid))
     }
 
     suspend fun updateWord(word: VocabularyWordEntity): Int {
-        return vocabularyDao.updateWord(word)
+        val uid = FirebaseManager.auth.currentUser?.uid ?: word.userId
+        return vocabularyDao.updateWord(word.copy(userId = uid))
     }
 
     suspend fun deleteWord(word: VocabularyWordEntity): Int {
@@ -48,7 +57,11 @@ class VocabularyRepository(
     }
 
     suspend fun getWordById(wordId: Int): VocabularyWordEntity? {
-        return vocabularyDao.getWordById(wordId)
+        val word = vocabularyDao.getWordById(wordId)
+        if (word != null && word.userId != currentUserId) {
+            return null
+        }
+        return word
     }
 
     suspend fun incrementTotalWords(setId: Int) {
@@ -60,7 +73,7 @@ class VocabularyRepository(
     }
 
     suspend fun exportVocabularySet(setId: Int): String {
-        val words = vocabularyDao.getWordsBySetIdOnce(setId)
+        val words = vocabularyDao.getWordsBySetIdOnceAndUserId(setId, currentUserId)
         return exportFormatter.formatCsv(words)
     }
 
@@ -75,7 +88,8 @@ class VocabularyRepository(
         setId: Int,
         preview: ImportPreview
     ): ImportResult {
-        val existingWords = vocabularyDao.getWordsBySetIdOnce(setId)
+        val uid = currentUserId
+        val existingWords = vocabularyDao.getWordsBySetIdOnceAndUserId(setId, uid)
         val existingKeys = existingWords
             .map { normalizeKey(it.word, it.meaning) }
             .toMutableSet()
@@ -92,6 +106,7 @@ class VocabularyRepository(
                 newWords.add(
                     VocabularyWordEntity(
                         setId = setId,
+                        userId = uid,
                         word = row.word,
                         meaning = row.meaning,
                         pronunciation = row.pronunciation,

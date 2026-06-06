@@ -18,6 +18,7 @@ data class VocabularyWordEntity(
     @PrimaryKey(autoGenerate = true)
     val wordId: Long = 0,
     val setId: Int, // Khóa ngoại liên kết với bảng trên
+    val userId: String = "",
     val word: String,
     val pronunciation: String,
     val meaning: String,
