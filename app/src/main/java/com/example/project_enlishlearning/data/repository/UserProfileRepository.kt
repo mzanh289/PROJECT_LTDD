@@ -12,6 +12,10 @@ class UserProfileRepository(
         return userProfileDao.getProfileByUserId(userId)
     }
 
+    suspend fun getProfileOneShot(userId: String): UserProfileEntity? {
+        return userProfileDao.getProfileByUserIdOneShot(userId)
+    }
+
     suspend fun saveProfile(profile: UserProfileEntity) {
         userProfileDao.upsertProfile(profile)
     }

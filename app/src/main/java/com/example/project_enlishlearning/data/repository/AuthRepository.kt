@@ -1,5 +1,6 @@
 package com.example.project_enlishlearning.data.repository
 
+import android.util.Log
 import com.example.project_enlishlearning.utils.FirebaseManager
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseUser
@@ -57,6 +58,11 @@ class AuthRepository {
 
     fun logout() {
         auth.signOut()
+
+        Log.d(
+            "AUTH",
+            "currentUser = ${auth.currentUser?.email}"
+        )
     }
 
     fun currentUser(): FirebaseUser? {

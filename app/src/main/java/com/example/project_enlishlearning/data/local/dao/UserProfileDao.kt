@@ -12,6 +12,9 @@ interface UserProfileDao {
     @Query("SELECT * FROM user_profiles WHERE userId = :userId LIMIT 1")
     fun getProfileByUserId(userId: String): Flow<UserProfileEntity?>
 
+    @Query("SELECT * FROM user_profiles WHERE userId = :userId LIMIT 1")
+    suspend fun getProfileByUserIdOneShot(userId: String): UserProfileEntity?
+
     @Upsert
     suspend fun upsertProfile(profile: UserProfileEntity)
 

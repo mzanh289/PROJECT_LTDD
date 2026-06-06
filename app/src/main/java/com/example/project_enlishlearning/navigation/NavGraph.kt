@@ -54,28 +54,13 @@ fun AppNavGraph(
     database: AppDatabase,
     authViewModel: AuthViewModel
 ) {
-    val userId = authViewModel.getCurrentUserId() ?: "local_user"
-
     val userProfileRepository = UserProfileRepository(
         userProfileDao = database.userProfileDao()
     )
 
-    val profileViewModel: ProfileViewModel = viewModel(
-        factory = ProfileViewModelFactory(
-            repository = userProfileRepository,
-            userId = userId
-        )
-    )
     val dashboardRepository = DashboardRepository(
         vocabularyDao = database.vocabularyDao(),
         learningProgressDao = database.learningProgressDao()
-    )
-
-    val dashboardViewModel: DashboardViewModel = viewModel(
-        factory = DashboardViewModelFactory(
-            repository = dashboardRepository,
-            userId = userId
-        )
     )
 
     NavHost(
@@ -115,8 +100,16 @@ fun AppNavGraph(
 
         // Dashboard
         composable(Screen.Dashboard.route) {
+            val currentUid = authViewModel.getCurrentUserId() ?: "local_user"
+            val currentDashboardViewModel: DashboardViewModel = viewModel(
+                key = currentUid,
+                factory = DashboardViewModelFactory(
+                    repository = dashboardRepository,
+                    userId = currentUid
+                )
+            )
             DashboardScreen(
-                viewModel = dashboardViewModel,
+                viewModel = currentDashboardViewModel,
                 navController = navController,
                 onFlashcardClick = {
                     navController.navigate(Screen.VocabularySetList.route)
@@ -328,10 +321,18 @@ fun AppNavGraph(
 
         // Profile
         composable(Screen.Profile.route) {
+            val currentUid = authViewModel.getCurrentUserId() ?: "local_user"
+            val currentProfileViewModel: ProfileViewModel = viewModel(
+                key = currentUid,
+                factory = ProfileViewModelFactory(
+                    repository = userProfileRepository,
+                    userId = currentUid
+                )
+            )
             ProfileScreen(
                 navController = navController,
                 authViewModel = authViewModel,
-                profileViewModel = profileViewModel,
+                profileViewModel = currentProfileViewModel,
                 onEditProfileClick = {
                     navController.navigate(Screen.EditProfileScreen.route)
                 },
@@ -350,10 +351,18 @@ fun AppNavGraph(
 
         // Edit Profile
         composable(Screen.EditProfileScreen.route) {
+            val currentUid = authViewModel.getCurrentUserId() ?: "local_user"
+            val currentProfileViewModel: ProfileViewModel = viewModel(
+                key = currentUid,
+                factory = ProfileViewModelFactory(
+                    repository = userProfileRepository,
+                    userId = currentUid
+                )
+            )
             EditProfileScreen(
                 navController = navController,
                 authViewModel = authViewModel,
-                profileViewModel = profileViewModel
+                profileViewModel = currentProfileViewModel
             )
         }
 

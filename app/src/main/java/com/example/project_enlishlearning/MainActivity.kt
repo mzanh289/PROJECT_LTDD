@@ -20,6 +20,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.LaunchedEffect
+import com.example.project_enlishlearning.utils.DatabaseProvider
 import com.example.project_enlishlearning.navigation.Screen
 
 class MainActivity : ComponentActivity() {
@@ -28,6 +29,8 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        DatabaseProvider.init(this)
 
         requestNotificationPermission()
         NotificationChannelHelper.createChannel(this)

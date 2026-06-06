@@ -132,9 +132,9 @@ interface LearningProgressDao {
     @Query("""
     SELECT COUNT(*)
     FROM vocabulary_words
-    WHERE setId = :setId
+    WHERE setId = :setId AND userId = :userId
 """)
-    suspend fun countTotalWordsBySet(setId: Int): Int
+    suspend fun countTotalWordsBySet(userId: String, setId: Int): Int
 
     @Query("""
     SELECT COUNT(*)

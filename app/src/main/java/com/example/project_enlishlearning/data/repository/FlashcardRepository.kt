@@ -4,18 +4,23 @@ import com.example.project_enlishlearning.data.local.dao.LearningProgressDao
 import com.example.project_enlishlearning.data.local.dao.VocabularyDao
 import com.example.project_enlishlearning.data.local.entity.LearningProgressEntity
 import com.example.project_enlishlearning.data.local.entity.VocabularyWordEntity
+import com.example.project_enlishlearning.utils.FirebaseManager
 import kotlinx.coroutines.flow.Flow
 
 class FlashcardRepository(
     private val learningProgressDao: LearningProgressDao,
     private val vocabularyDao: VocabularyDao
 ) {
+    private val currentUserId: String
+        get() = FirebaseManager.auth.currentUser?.uid ?: ""
+
     fun getDifficultWordsBySet(
         userId: String,
         setId: Int
     ): Flow<List<VocabularyWordEntity>> {
+        val uid = FirebaseManager.auth.currentUser?.uid ?: userId
         return learningProgressDao.getReviewWordsBySet(
-            userId = userId,
+            userId = uid,
             setId = setId
         )
     }
@@ -23,44 +28,51 @@ class FlashcardRepository(
     fun getDueReviewWords(
         userId: String
     ): Flow<List<VocabularyWordEntity>> {
-        return learningProgressDao.getDueReviewWords(userId)
+        val uid = FirebaseManager.auth.currentUser?.uid ?: userId
+        return learningProgressDao.getDueReviewWords(uid)
     }
 
     fun getWordsBySetId(setId: Int): Flow<List<VocabularyWordEntity>> {
-        return vocabularyDao.getWordsBySetId(setId)
+        return vocabularyDao.getWordsBySetIdAndUserId(setId, currentUserId)
     }
 
     suspend fun getProgressByWord(userId: String, wordId: Long): LearningProgressEntity? {
-        return learningProgressDao.getProgressByWord(userId, wordId)
+        val uid = FirebaseManager.auth.currentUser?.uid ?: userId
+        return learningProgressDao.getProgressByWord(uid, wordId)
     }
 
     suspend fun upsertProgress(progress: LearningProgressEntity) {
-        learningProgressDao.upsertProgress(progress)
+        val uid = FirebaseManager.auth.currentUser?.uid ?: progress.userId
+        learningProgressDao.upsertProgress(progress.copy(userId = uid))
     }
 
     suspend fun updateWord(word: VocabularyWordEntity): Int {
-        return vocabularyDao.updateWord(word)
+        val uid = FirebaseManager.auth.currentUser?.uid ?: word.userId
+        return vocabularyDao.updateWord(word.copy(userId = uid))
     }
 
     suspend fun getReviewDueCount(userId: String): Int {
-        return learningProgressDao.getReviewDueCount(userId)
+        val uid = FirebaseManager.auth.currentUser?.uid ?: userId
+        return learningProgressDao.getReviewDueCount(uid)
     }
-    //continue set
+
     fun getUnlearnedWordsBySet(
         userId: String,
         setId: Int
     ): Flow<List<VocabularyWordEntity>> {
-        return learningProgressDao.getUnlearnedWordsBySet(userId, setId)
+        val uid = FirebaseManager.auth.currentUser?.uid ?: userId
+        return learningProgressDao.getUnlearnedWordsBySet(uid, setId)
     }
 
     suspend fun updateSetProgress(
         userId: String,
         setId: Int
     ) {
-        val totalWords = learningProgressDao.countTotalWordsBySet(setId)
+        val uid = FirebaseManager.auth.currentUser?.uid ?: userId
+        val totalWords = learningProgressDao.countTotalWordsBySet(uid, setId)
 
         val learnedWords = learningProgressDao.countLearnedWordsBySet(
-            userId = userId,
+            userId = uid,
             setId = setId
         )
 

@@ -74,11 +74,17 @@ interface VocabularyDao {
     // Giảm số lượng từ vựng đi 1 (đảm bảo không bị âm)
     @Query("UPDATE vocabulary_sets SET totalWords = totalWords - 1 WHERE setId = :setId AND totalWords > 0")
     suspend fun decrementTotalWords(setId: Int)
-    @Query("SELECT COUNT(*) FROM vocabulary_sets")
-    fun countVocabularySets(): Flow<Int>
+    @Query("SELECT COUNT(*) FROM vocabulary_sets WHERE userId = :userId")
+    fun countVocabularySets(userId: String): Flow<Int>
 
-    @Query("SELECT COUNT(*) FROM vocabulary_words")
-    fun countVocabularyWords(): Flow<Int>
+    @Query("SELECT COUNT(*) FROM vocabulary_words WHERE userId = :userId")
+    fun countVocabularyWords(userId: String): Flow<Int>
+
+    @Query("SELECT * FROM vocabulary_words WHERE setId = :targetSetId AND userId = :userId")
+    fun getWordsBySetIdAndUserId(targetSetId: Int, userId: String): Flow<List<VocabularyWordEntity>>
+
+    @Query("SELECT * FROM vocabulary_words WHERE setId = :targetSetId AND userId = :userId")
+    suspend fun getWordsBySetIdOnceAndUserId(targetSetId: Int, userId: String): List<VocabularyWordEntity>
 
     @Query("""
     UPDATE vocabulary_sets
