@@ -31,7 +31,7 @@ fun ForgotPasswordScreen(
 ) {
 
     var email by remember { mutableStateOf("") }
-    var message by remember { mutableStateOf("") }
+    var validationError by remember { mutableStateOf("") }
 
     Scaffold(
         topBar = {
@@ -108,9 +108,25 @@ fun ForgotPasswordScreen(
                             enabled = !authViewModel.loading,
 
                             onClick = {
+                                validationError = ""
+
+                                val trimmedEmail = email.trim()
+
+                                when {
+                                    trimmedEmail.isBlank() -> {
+                                        validationError = "Email cannot be empty"
+                                        return@PrimaryButton
+                                    }
+                                    !android.util.Patterns.EMAIL_ADDRESS
+                                        .matcher(trimmedEmail)
+                                        .matches() -> {
+                                        validationError = "Invalid email format"
+                                        return@PrimaryButton
+                                    }
+                                }
 
                                 authViewModel.resetPassword(
-                                    email = email
+                                    email = trimmedEmail
                                 ) {
 
                                     navController.navigate("login") {
@@ -125,12 +141,32 @@ fun ForgotPasswordScreen(
                             modifier = Modifier.fillMaxWidth()
                         )
 
-                        if (message.isNotEmpty()) {
+                        if (validationError.isNotEmpty()) {
+
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            Text(
+                                text = validationError,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
+
+                        if (authViewModel.error.isNotEmpty()) {
+
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            Text(
+                                text = authViewModel.error,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
+
+                        if (authViewModel.successMessage.isNotEmpty()) {
 
                             Spacer(modifier = Modifier.height(16.dp))
 
                             Text(
-                                text = message,
+                                text = authViewModel.successMessage,
                                 color = MaterialTheme.colorScheme.primary
                             )
                         }

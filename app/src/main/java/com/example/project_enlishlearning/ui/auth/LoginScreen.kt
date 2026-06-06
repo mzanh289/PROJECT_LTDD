@@ -46,6 +46,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.platform.LocalContext
+import com.example.project_enlishlearning.ui.components.GoogleSignInButton
 import com.example.project_enlishlearning.viewmodel.AuthViewModel
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -209,20 +210,23 @@ fun LoginScreen(
 
                         PrimaryButton(
                             text = if (authViewModel.loading) "Loading..." else "Sign In",
+                            enabled = !authViewModel.loading,
                             onClick = {
 
                                 validationError = ""
                                 successMessage = ""
 
+                                val trimmedEmail = email.trim()
+
                                 when {
 
-                                    email.isBlank() -> {
+                                    trimmedEmail.isBlank() -> {
                                         validationError = "Email cannot be empty"
                                         return@PrimaryButton
                                     }
 
                                     !android.util.Patterns.EMAIL_ADDRESS
-                                        .matcher(email)
+                                        .matcher(trimmedEmail)
                                         .matches() -> {
 
                                         validationError = "Invalid email format"
@@ -241,7 +245,7 @@ fun LoginScreen(
                                 }
 
                                 authViewModel.login(
-                                    email = email,
+                                    email = trimmedEmail,
                                     password = password
                                 ) {
 
@@ -294,13 +298,9 @@ fun LoginScreen(
 
                         Spacer(modifier = Modifier.height(18.dp))
 
-                        SecondaryButton(
-                            text = "Continue with Google",
+                        GoogleSignInButton(
                             onClick = {
-
-                                launcher.launch(
-                                    googleSignInClient.signInIntent
-                                )
+                                launcher.launch(googleSignInClient.signInIntent)
                             },
                             modifier = Modifier.fillMaxWidth()
                         )

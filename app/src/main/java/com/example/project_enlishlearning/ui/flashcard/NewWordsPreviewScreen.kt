@@ -83,7 +83,7 @@ fun NewWordsPreviewScreen(
         bottomBar = {
             Surface(tonalElevation = 2.dp) {
                 PrimaryButton(
-                    text = "Start Flashcard Session",
+                    text = "Start Flashcard",
                     onClick = {
                         // Nhớ truyền tiếp setId sang màn hình FlashcardLearning nếu màn hình đó cũng cần tải Database nhé
                         navController.navigate(

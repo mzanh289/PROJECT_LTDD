@@ -13,7 +13,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.project_enlishlearning.navigation.Screen
@@ -26,6 +29,12 @@ fun EmailVerificationScreen(
     navController: NavController,
     authViewModel: AuthViewModel = viewModel()
 ) {
+
+    val onVerifiedNavigation = {
+        navController.navigate(Screen.Login.route) {
+            popUpTo(0)
+        }
+    }
 
     Scaffold {
 
@@ -73,19 +82,11 @@ fun EmailVerificationScreen(
                         Spacer(modifier = Modifier.height(24.dp))
 
                         PrimaryButton(
-                            text = "I Verified",
+                            text = if (authViewModel.loading) "Checking..." else "I Verified",
+                            enabled = !authViewModel.loading,
 
                             onClick = {
-
-                                authViewModel.checkEmailVerification {
-
-                                    navController.navigate(
-                                        Screen.Login.route
-                                    ) {
-
-                                        popUpTo(0)
-                                    }
-                                }
+                                authViewModel.checkEmailVerification(onVerified = onVerifiedNavigation)
                             },
 
                             modifier = Modifier.fillMaxWidth()
@@ -95,6 +96,7 @@ fun EmailVerificationScreen(
 
                         SecondaryButton(
                             text = "Resend Email",
+                            enabled = !authViewModel.loading,
 
                             onClick = {
 
@@ -112,6 +114,16 @@ fun EmailVerificationScreen(
                             Text(
                                 text = authViewModel.message,
                                 color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+
+                        if (authViewModel.error.isNotEmpty()) {
+
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            Text(
+                                text = authViewModel.error,
+                                color = MaterialTheme.colorScheme.error
                             )
                         }
                     }

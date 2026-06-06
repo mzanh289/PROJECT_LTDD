@@ -1,5 +1,6 @@
 package com.example.project_enlishlearning.ui.dashboard
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -39,6 +40,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -182,16 +184,6 @@ fun DashboardScreen(
                         )
                     }
                 }
-
-                item {
-                    ProgressOverviewCard(
-                        newWords = newWords,
-                        learningWords = learningWords,
-                        reviewingWords = reviewingWords,
-                        masteredWords = masteredWords,
-                        masteredProgress = masteredProgress
-                    )
-                }
             }
         }
     }
@@ -311,48 +303,6 @@ private fun ModernStatCard(
     }
 }
 
-@Composable
-private fun ProgressOverviewCard(
-    newWords: Int,
-    learningWords: Int,
-    reviewingWords: Int,
-    masteredWords: Int,
-    masteredProgress: Float
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(28.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
-        ) {
-            Text(
-                text = "Vocabulary Progress",
-                style = MaterialTheme.typography.titleLarge
-            )
-
-            LinearProgressIndicator(
-                progress = { masteredProgress.coerceIn(0f, 1f) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(10.dp),
-                trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
-            )
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                ProgressText("New", newWords)
-                ProgressText("Learning", learningWords)
-                ProgressText("Reviewing", reviewingWords)
-                ProgressText("Mastered", masteredWords)
-            }
-        }
-    }
-}
 
 @Composable
 private fun LearningStreakCard(
@@ -362,7 +312,11 @@ private fun LearningStreakCard(
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(24.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White
+        ),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
             modifier = Modifier
@@ -411,7 +365,11 @@ private fun RetentionRateCard(
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(24.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White
+        ),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
             modifier = Modifier
@@ -453,7 +411,11 @@ private fun DailyActivityChartCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White
+        ),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
             modifier = Modifier.padding(20.dp),
@@ -473,39 +435,57 @@ private fun DailyActivityChartCard(
             } else {
                 val maxCount = dailyCounts.maxOf { it.reviewCount }.coerceAtLeast(1)
 
-                BoxWithConstraints(
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(180.dp)
                 ) {
+
+                    // baseline (đường nền cho đẹp hơn)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(1.dp)
+                            .align(Alignment.BottomCenter)
+                            .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                    )
+
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .align(Alignment.BottomStart),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
                         dailyCounts.forEach { day ->
+
                             val barHeightRatio =
-                                (day.reviewCount.toFloat() / maxCount.toFloat())
-                                    .coerceIn(0f, 1f)
+                                (day.reviewCount.toFloat() / maxCount.toFloat()).coerceIn(0f, 1f)
 
                             Column(
-                                modifier = Modifier.weight(1f),
                                 horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Bottom
+                                verticalArrangement = Arrangement.Bottom,
+                                modifier = Modifier.weight(1f)
                             ) {
+
+                                // BAR (đẹp hơn)
                                 Box(
                                     modifier = Modifier
-                                        .width(18.dp)
-                                        .height((120.dp * barHeightRatio).coerceAtLeast(8.dp))
+                                        .width(14.dp)
+                                        .height((140.dp * barHeightRatio).coerceAtLeast(10.dp))
                                         .background(
-                                            color = MaterialTheme.colorScheme.primary,
-                                            shape = RoundedCornerShape(12.dp)
+                                            brush = Brush.verticalGradient(
+                                                colors = listOf(
+                                                    MaterialTheme.colorScheme.primary,
+                                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
+                                                )
+                                            ),
+                                            shape = RoundedCornerShape(50)
                                         )
                                 )
 
                                 Spacer(modifier = Modifier.height(8.dp))
 
+                                // DAY LABEL
                                 Text(
                                     text = day.day.takeLast(2),
                                     style = MaterialTheme.typography.bodySmall,

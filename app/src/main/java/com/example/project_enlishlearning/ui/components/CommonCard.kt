@@ -1,5 +1,6 @@
 package com.example.project_enlishlearning.ui.components
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -7,10 +8,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -32,13 +35,17 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.example.project_enlishlearning.R
 import com.example.project_enlishlearning.ui.theme.AppDimens
 import com.example.project_enlishlearning.ui.theme.GradientEnd
 import com.example.project_enlishlearning.ui.theme.GradientStart
@@ -121,7 +128,8 @@ fun SecondaryButton(
 	text: String,
 	onClick: () -> Unit,
 	modifier: Modifier = Modifier,
-	leadingIcon: ImageVector? = null
+	leadingIcon: ImageVector? = null,
+	enabled: Boolean = true
 ) {
 	OutlinedButton(
 		onClick = onClick,
@@ -129,6 +137,7 @@ fun SecondaryButton(
 			.height(AppDimens.ButtonHeight)
 			.fillMaxWidth(),
 		shape = RoundedCornerShape(AppDimens.ButtonRadius),
+		enabled = enabled,
 		contentPadding = PaddingValues(horizontal = 8.dp)
 	) {
 		if (leadingIcon != null) {
@@ -144,6 +153,34 @@ fun SecondaryButton(
 			style = MaterialTheme.typography.labelLarge,
 			maxLines = 1,
 			overflow = TextOverflow.Ellipsis
+		)
+	}
+}
+
+@Composable
+fun GoogleSignInButton(
+	text: String = "Continue with Google",
+	onClick: () -> Unit,
+	modifier: Modifier = Modifier
+) {
+	OutlinedButton(
+		onClick = onClick,
+		modifier = modifier
+			.height(AppDimens.ButtonHeight),
+		shape = RoundedCornerShape(AppDimens.ButtonRadius),
+		contentPadding = PaddingValues(horizontal = 12.dp)
+	) {
+		Image(
+			painter = painterResource(id = R.drawable.google),
+			contentDescription = "Google",
+			modifier = Modifier.size(18.dp)
+		)
+
+		Spacer(modifier = Modifier.width(10.dp))
+
+		Text(
+			text = text,
+			style = MaterialTheme.typography.labelLarge
 		)
 	}
 }
@@ -269,19 +306,20 @@ fun AppTagChip(
 
 @Composable
 fun AuthLogo(
-	modifier: Modifier = Modifier,
-	text: String = "M"
+	modifier: Modifier = Modifier
 ) {
 	Box(
 		modifier = modifier
 			.size(72.dp)
-			.background(MaterialTheme.colorScheme.primary, CircleShape),
+			.clip(CircleShape)
+			.background(MaterialTheme.colorScheme.primary),
 		contentAlignment = Alignment.Center
 	) {
-		Text(
-			text = text,
-			color = MaterialTheme.colorScheme.onPrimary,
-			style = MaterialTheme.typography.displaySmall
+		Image(
+			painter = painterResource(id = R.drawable.minlish3),
+			contentDescription = "Avatar",
+			modifier = Modifier.fillMaxSize(),
+			contentScale = ContentScale.Crop
 		)
 	}
 }

@@ -170,41 +170,47 @@ fun RegisterScreen(
 
                         PrimaryButton(
                             text = if (loading) "Loading..." else "Create Account",
+                            enabled = !loading,
                             onClick = {
 
                                 validationError = ""
                                 successMessage = ""
 
+                                val trimmedName = fullName.trim()
+                                val trimmedEmail = email.trim()
+                                val trimmedPassword = password.trim()
+                                val trimmedConfirmPassword = confirmPassword.trim()
+
                                 when {
 
-                                    fullName.isBlank() -> {
+                                    trimmedName.isBlank() -> {
                                         validationError = "Full name cannot be empty"
                                     }
 
-                                    email.isBlank() -> {
+                                    trimmedEmail.isBlank() -> {
                                         validationError = "Email cannot be empty"
                                     }
 
                                     !android.util.Patterns.EMAIL_ADDRESS
-                                        .matcher(email)
+                                        .matcher(trimmedEmail)
                                         .matches() -> {
 
                                         validationError = "Invalid email format"
                                     }
 
-                                    password.isBlank() -> {
+                                    trimmedPassword.isBlank() -> {
                                         validationError = "Password cannot be empty"
                                     }
 
-                                    password.length < 6 -> {
+                                    trimmedPassword.length < 6 -> {
                                         validationError = "Password must be at least 6 characters"
                                     }
 
-                                    confirmPassword.isBlank() -> {
+                                    trimmedConfirmPassword.isBlank() -> {
                                         validationError = "Please confirm password"
                                     }
 
-                                    password != confirmPassword -> {
+                                    trimmedPassword != trimmedConfirmPassword -> {
                                         validationError = "Passwords do not match"
                                     }
 
@@ -215,8 +221,9 @@ fun RegisterScreen(
                                     else -> {
 
                                         authViewModel.register(
-                                            email = email,
-                                            password = password
+                                            email = trimmedEmail,
+                                            password = trimmedPassword,
+                                            displayName = trimmedName
                                         ) {
                                             successMessage =
                                                 "Account created successfully. Verification email sent."

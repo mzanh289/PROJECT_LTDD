@@ -33,8 +33,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.material3.CardDefaults
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -61,6 +63,12 @@ fun EditProfileScreen(
     var learningGoal by remember { mutableStateOf("") }
     var dailyNewWordTarget by remember { mutableStateOf("10") }
     var dailyReviewTarget by remember { mutableStateOf("20") }
+
+    var displayNameError by remember { mutableStateOf<String?>(null) }
+    var englishLevelError by remember { mutableStateOf<String?>(null) }
+    var learningGoalError by remember { mutableStateOf<String?>(null) }
+    var dailyNewWordTargetError by remember { mutableStateOf<String?>(null) }
+    var dailyReviewTargetError by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(profile) {
         profile?.let {
@@ -96,14 +104,7 @@ fun EditProfileScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.10f),
-                            MaterialTheme.colorScheme.background
-                        )
-                    )
-                )
+                .background(Color.White)
                 .padding(padding)
         ) {
             LazyColumn(
@@ -119,9 +120,13 @@ fun EditProfileScreen(
                     EditProfileCard {
                         ModernProfileTextField(
                             value = displayName,
-                            onValueChange = { displayName = it },
+                            onValueChange = {
+                                displayName = it
+                                displayNameError = null
+                            },
                             label = "Full Name",
-                            icon = Icons.Default.Person
+                            icon = Icons.Default.Person,
+                            errorMessage = displayNameError
                         )
 
                         Spacer(modifier = Modifier.height(14.dp))
@@ -138,52 +143,108 @@ fun EditProfileScreen(
 
                         ModernProfileTextField(
                             value = englishLevel,
-                            onValueChange = { englishLevel = it.uppercase() },
+                            onValueChange = {
+                                englishLevel = it.uppercase()
+                                englishLevelError = null
+                            },
                             label = "English Level",
-                            icon = Icons.Default.School
+                            icon = Icons.Default.School,
+                            errorMessage = englishLevelError
                         )
 
                         Spacer(modifier = Modifier.height(14.dp))
 
                         ModernProfileTextField(
                             value = learningGoal,
-                            onValueChange = { learningGoal = it },
+                            onValueChange = {
+                                learningGoal = it
+                                learningGoalError = null
+                            },
                             label = "Learning Goal",
-                            icon = Icons.Default.Flag
+                            icon = Icons.Default.Flag,
+                            errorMessage = learningGoalError
                         )
 
                         Spacer(modifier = Modifier.height(14.dp))
 
                         ModernProfileTextField(
                             value = dailyNewWordTarget,
-                            onValueChange = { dailyNewWordTarget = it },
+                            onValueChange = {
+                                dailyNewWordTarget = it
+                                dailyNewWordTargetError = null
+                            },
                             label = "New Words Per Day",
-                            icon = Icons.Default.Timer
+                            icon = Icons.Default.Timer,
+                            errorMessage = dailyNewWordTargetError
                         )
 
                         Spacer(modifier = Modifier.height(14.dp))
 
                         ModernProfileTextField(
                             value = dailyReviewTarget,
-                            onValueChange = { dailyReviewTarget = it },
+                            onValueChange = {
+                                dailyReviewTarget = it
+                                dailyReviewTargetError = null
+                            },
                             label = "Reviews Per Day",
-                            icon = Icons.Default.Timer
+                            icon = Icons.Default.Timer,
+                            errorMessage = dailyReviewTargetError
                         )
 
                         Spacer(modifier = Modifier.height(22.dp))
 
                         Button(
                             onClick = {
-                                profileViewModel.saveProfile(
-                                    email = email,
-                                    displayName = displayName,
-                                    englishLevel = englishLevel,
-                                    learningGoal = learningGoal,
-                                    dailyNewWordTarget = dailyNewWordTarget.toIntOrNull() ?: 10,
-                                    dailyReviewTarget = dailyReviewTarget.toIntOrNull() ?: 20
-                                )
+                                val validLevels = listOf("A1", "A2", "B1", "B2", "C1", "C2")
 
-                                navController.popBackStack()
+                                val newWordTarget = dailyNewWordTarget.toIntOrNull()
+                                val reviewTarget = dailyReviewTarget.toIntOrNull()
+
+                                displayNameError = null
+                                englishLevelError = null
+                                learningGoalError = null
+                                dailyNewWordTargetError = null
+                                dailyReviewTargetError = null
+
+                                var isValid = true
+
+                                if (displayName.trim().isEmpty()) {
+                                    displayNameError = "Full name cannot be empty"
+                                    isValid = false
+                                }
+
+                                if (englishLevel.trim().uppercase() !in validLevels) {
+                                    englishLevelError = "Level must be A1, A2, B1, B2, C1 or C2"
+                                    isValid = false
+                                }
+
+                                if (learningGoal.trim().isEmpty()) {
+                                    learningGoalError = "Learning goal cannot be empty"
+                                    isValid = false
+                                }
+
+                                if (newWordTarget == null || newWordTarget <= 0) {
+                                    dailyNewWordTargetError = "New words per day must be greater than 0"
+                                    isValid = false
+                                }
+
+                                if (reviewTarget == null || reviewTarget <= 0) {
+                                    dailyReviewTargetError = "Reviews per day must be greater than 0"
+                                    isValid = false
+                                }
+
+                                if (isValid) {
+                                    profileViewModel.saveProfile(
+                                        email = email,
+                                        displayName = displayName.trim(),
+                                        englishLevel = englishLevel.trim().uppercase(),
+                                        learningGoal = learningGoal.trim(),
+                                        dailyNewWordTarget = newWordTarget ?: 10,
+                                        dailyReviewTarget = reviewTarget ?: 20
+                                    )
+
+                                    navController.popBackStack()
+                                }
                             },
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(18.dp)
@@ -223,7 +284,9 @@ private fun EditProfileCard(
     androidx.compose.material3.Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
-        elevation = androidx.compose.material3.CardDefaults.cardElevation(defaultElevation = 4.dp)
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White
+        ),
     ) {
         Column(
             modifier = Modifier.padding(20.dp),
@@ -238,23 +301,38 @@ private fun ModernProfileTextField(
     onValueChange: (String) -> Unit,
     label: String,
     icon: ImageVector,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    errorMessage: String? = null
 ) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        label = {
-            Text(label)
-        },
-        leadingIcon = {
-            Icon(
-                imageVector = icon,
-                contentDescription = null
+    Column {
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            label = {
+                Text(label)
+            },
+            leadingIcon = {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null
+                )
+            },
+            modifier = Modifier.fillMaxWidth(),
+            enabled = enabled,
+            singleLine = true,
+            shape = RoundedCornerShape(18.dp),
+            isError = errorMessage != null
+        )
+
+        if (errorMessage != null) {
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Text(
+                text = errorMessage,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(start = 12.dp)
             )
-        },
-        modifier = Modifier.fillMaxWidth(),
-        enabled = enabled,
-        singleLine = true,
-        shape = RoundedCornerShape(18.dp)
-    )
+        }
+    }
 }

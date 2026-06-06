@@ -20,7 +20,7 @@ class AuthViewModel : ViewModel() {
         UserProfileRepository(DatabaseProvider.getDatabase().userProfileDao())
     }
 
-    private suspend fun syncUserProfile(user: FirebaseUser, isRegistration: Boolean) {
+    private suspend fun syncUserProfile(user: FirebaseUser, isRegistration: Boolean, displayName: String? = null) {
         val uid = user.uid
         val email = user.email ?: ""
 
@@ -33,11 +33,11 @@ class AuthViewModel : ViewModel() {
         try {
             val existingProfile = userProfileRepository.getProfileOneShot(uid)
             if (existingProfile == null) {
-                val displayName = email.substringBefore("@")
+                val finalDisplayName = displayName ?: email.substringBefore("@")
                 val newProfile = UserProfileEntity(
                     userId = uid,
                     email = email,
-                    displayName = displayName,
+                    displayName = finalDisplayName,
                     englishLevel = "A1",
                     learningGoal = "",
                     dailyNewWordTarget = 10,
@@ -68,6 +68,7 @@ class AuthViewModel : ViewModel() {
     fun register(
         email: String,
         password: String,
+        displayName: String? = null,
         onSuccess: () -> Unit
     ) {
 
@@ -81,7 +82,7 @@ class AuthViewModel : ViewModel() {
             )
                 .onSuccess { firebaseUser ->
                     if (firebaseUser != null) {
-                        syncUserProfile(firebaseUser, isRegistration = true)
+                        syncUserProfile(firebaseUser, isRegistration = true, displayName = displayName)
                     }
                     repository.sendEmailVerification()
                     onSuccess()

@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.TrackChanges
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -36,6 +37,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -47,6 +49,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -255,6 +258,9 @@ private fun LevelProgressCard(
 	Card(
 		modifier = Modifier.fillMaxWidth(),
 		shape = RoundedCornerShape(28.dp),
+		colors = CardDefaults.cardColors(
+			containerColor = Color.White
+		),
 		elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
 	) {
 		Column(
@@ -312,6 +318,7 @@ private fun LearningGoalCard(
 	Card(
 		modifier = Modifier.fillMaxWidth(),
 		shape = RoundedCornerShape(28.dp),
+		colors = CardDefaults.cardColors(Color.White),
 		elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
 	) {
 		Column(
@@ -411,6 +418,7 @@ private fun ProfileInfoCard(
 	Card(
 		modifier = Modifier.fillMaxWidth(),
 		shape = RoundedCornerShape(28.dp),
+		colors = CardDefaults.cardColors(Color.White),
 		elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
 	) {
 		Column(
@@ -494,9 +502,38 @@ private fun ProfileActionsCard(
 	onEditClick: () -> Unit,
 	onLogoutClick: () -> Unit
 ) {
+	var showLogoutDialog by remember { mutableStateOf(false) }
+
+	// Dialog xác nhận logout
+	if (showLogoutDialog) {
+		AlertDialog(
+			onDismissRequest = { showLogoutDialog = false },
+			title = { Text("Confirm Logout") },
+			text = { Text("Are you sure you want to log out?") },
+			confirmButton = {
+				TextButton(
+					onClick = {
+						showLogoutDialog = false
+						onLogoutClick()
+					}
+				) {
+					Text("Logout", color = MaterialTheme.colorScheme.error)
+				}
+			},
+			dismissButton = {
+				TextButton(
+					onClick = { showLogoutDialog = false }
+				) {
+					Text("Cancel")
+				}
+			}
+		)
+	}
+
 	Card(
 		modifier = Modifier.fillMaxWidth(),
 		shape = RoundedCornerShape(28.dp),
+		colors = CardDefaults.cardColors(Color.White),
 		elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
 	) {
 		Column(
@@ -520,12 +557,11 @@ private fun ProfileActionsCard(
 				)
 
 				Spacer(modifier = Modifier.width(8.dp))
-
 				Text("Edit Profile")
 			}
 
 			OutlinedButton(
-				onClick = onLogoutClick,
+				onClick = { showLogoutDialog = true }, // 👈 đổi ở đây
 				modifier = Modifier.fillMaxWidth(),
 				shape = RoundedCornerShape(18.dp),
 				colors = ButtonDefaults.outlinedButtonColors(
@@ -538,7 +574,6 @@ private fun ProfileActionsCard(
 				)
 
 				Spacer(modifier = Modifier.width(8.dp))
-
 				Text("Logout")
 			}
 		}
