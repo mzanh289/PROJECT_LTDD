@@ -70,7 +70,10 @@ fun AppNavGraph(
 
         // Splash
         composable(Screen.Splash.route) {
-            SplashScreen(navController = navController)
+            SplashScreen(
+                navController = navController,
+                authViewModel = authViewModel
+            )
         }
 
         // Login

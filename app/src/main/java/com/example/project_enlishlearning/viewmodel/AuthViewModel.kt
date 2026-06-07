@@ -10,8 +10,15 @@ import com.example.project_enlishlearning.data.local.entity.UserProfileEntity
 import com.example.project_enlishlearning.data.repository.AuthRepository
 import com.example.project_enlishlearning.data.repository.UserProfileRepository
 import com.example.project_enlishlearning.utils.DatabaseProvider
+import com.google.firebase.auth.FirebaseAuthInvalidUserException
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
+import com.google.firebase.auth.FirebaseAuthWeakPasswordException
+import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
+import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 class AuthViewModel : ViewModel() {
 
@@ -88,7 +95,7 @@ class AuthViewModel : ViewModel() {
                     onSuccess()
                 }
                 .onFailure {
-                    error = it.message ?: "Register failed"
+                    error = getFriendlyErrorMessage(it)
                 }
 
             loading = false
@@ -116,7 +123,7 @@ class AuthViewModel : ViewModel() {
                     onSuccess()
                 }
                 .onFailure {
-                    error = it.message ?: "Login failed"
+                    error = getFriendlyErrorMessage(it)
                 }
 
             loading = false
@@ -142,9 +149,7 @@ class AuthViewModel : ViewModel() {
                     onSuccess()
                 }
                 .onFailure {
-
-                    error =
-                        it.message ?: "Something went wrong"
+                    error = getFriendlyErrorMessage(it)
                 }
 
             loading = false
@@ -174,9 +179,7 @@ class AuthViewModel : ViewModel() {
                     }
                 }
                 .onFailure {
-
-                    error =
-                        it.message ?: "Something went wrong"
+                    error = getFriendlyErrorMessage(it)
                 }
 
             loading = false
@@ -202,9 +205,7 @@ class AuthViewModel : ViewModel() {
                 }
                 .onFailure {
 
-                    error =
-                        it.message
-                            ?: "Google Sign-In failed"
+                    error = getFriendlyErrorMessage(it)
                 }
 
             loading = false
@@ -224,9 +225,7 @@ class AuthViewModel : ViewModel() {
                 }
                 .onFailure {
 
-                    error =
-                        it.message
-                            ?: "Failed to resend email"
+                    error = getFriendlyErrorMessage(it)
                 }
         }
     }
@@ -241,5 +240,63 @@ class AuthViewModel : ViewModel() {
     fun logout(onLogout: () -> Unit) {
         repository.logout()
         onLogout()
+    }
+
+    fun checkSession(
+        onSessionValid: () -> Unit,
+        onSessionInvalid: () -> Unit
+    ) {
+        viewModelScope.launch {
+            val user = repository.currentUser()
+            if (user == null) {
+                onSessionInvalid()
+                return@launch
+            }
+            try {
+                // Reload user to verify if they still exist in Firebase Console
+                user.reload().await()
+                onSessionValid()
+            } catch (e: FirebaseAuthInvalidUserException) {
+                // User was deleted/disabled in Firebase Console
+                val uid = user.uid
+                try {
+                    userProfileRepository.deleteProfile(uid)
+                } catch (dbEx: Exception) {
+                    Log.e("AUTH", "Failed to delete user profile from Room: ${dbEx.message}", dbEx)
+                }
+                repository.logout()
+                onSessionInvalid()
+            } catch (e: Exception) {
+                // Other exceptions (e.g. network offline) are ignored, assume valid
+                Log.w("AUTH", "Session verification failed: ${e.message}", e)
+                onSessionValid()
+            }
+        }
+    }
+
+    private fun getFriendlyErrorMessage(throwable: Throwable): String {
+        return when (throwable) {
+            is FirebaseAuthInvalidUserException -> {
+                "No account found with this email address, or the account has been disabled."
+            }
+            is FirebaseAuthInvalidCredentialsException -> {
+                "Incorrect email or password. Please try again."
+            }
+            is FirebaseAuthUserCollisionException -> {
+                "This email address is already registered."
+            }
+            is FirebaseAuthWeakPasswordException -> {
+                "The password is too weak. Please use a stronger password (at least 6 characters)."
+            }
+            is FirebaseAuthRecentLoginRequiredException -> {
+                "For security reasons, please log out and log in again before performing this action."
+            }
+            is FirebaseNetworkException -> {
+                "Network error. Please check your internet connection."
+            }
+            else -> {
+    "An unexpected error occurred. Please try again."
+}
+        }
     }
 }

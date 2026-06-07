@@ -32,12 +32,42 @@ import com.example.project_enlishlearning.navigation.Screen
 import com.example.project_enlishlearning.ui.components.PrimaryButton
 import com.example.project_enlishlearning.ui.theme.ProjectEnlishLearningTheme
 import androidx.compose.ui.res.painterResource
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.project_enlishlearning.viewmodel.AuthViewModel
 import com.example.project_enlishlearning.R
 
 @Composable
 fun SplashScreen(
-    navController: NavController
+    navController: NavController,
+    authViewModel: AuthViewModel = viewModel()
 ) {
+    var isCheckingSession by remember { mutableStateOf(true) }
+
+    LaunchedEffect(Unit) {
+        if (authViewModel.getCurrentUserId() != null) {
+            isCheckingSession = true
+            authViewModel.checkSession(
+                onSessionValid = {
+                    isCheckingSession = false
+                    navController.navigate(Screen.Dashboard.route) {
+                        popUpTo(Screen.Splash.route) {
+                            inclusive = true
+                        }
+                    }
+                },
+                onSessionInvalid = {
+                    isCheckingSession = false
+                }
+            )
+        } else {
+            isCheckingSession = false
+        }
+    }
 
     val gradient = Brush.linearGradient(
         colors = listOf(
@@ -112,13 +142,23 @@ fun SplashScreen(
 
             Spacer(modifier = Modifier.height(300.dp))
 
-            PrimaryButton(
-                text = "Let's Get Started",
-                onClick = {
-                    navController.navigate(Screen.Login.route)
-                },
-                modifier = Modifier.fillMaxWidth()
-            )
+            if (isCheckingSession) {
+                androidx.compose.material3.CircularProgressIndicator(
+                    color = Color.White
+                )
+            } else {
+                PrimaryButton(
+                    text = "Let's Get Started",
+                    onClick = {
+                        navController.navigate(Screen.Login.route) {
+                            popUpTo(Screen.Splash.route) {
+                                inclusive = true
+                            }
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
         }
     }
 }

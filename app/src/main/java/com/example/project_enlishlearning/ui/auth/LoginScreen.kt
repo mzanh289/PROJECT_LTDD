@@ -300,7 +300,9 @@ fun LoginScreen(
 
                         GoogleSignInButton(
                             onClick = {
-                                launcher.launch(googleSignInClient.signInIntent)
+                                googleSignInClient.signOut().addOnCompleteListener {
+                                    launcher.launch(googleSignInClient.signInIntent)
+                                }
                             },
                             modifier = Modifier.fillMaxWidth()
                         )
