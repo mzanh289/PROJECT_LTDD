@@ -158,16 +158,12 @@ fun VocabularySetDetailScreen(
         }
     }
 
-    // 1. Tự động gọi Database để lấy danh sách từ vựng khi mở màn hình này lên
     LaunchedEffect(setId) {
         viewModel.loadWordsForSet(setId)
     }
 
-    // 2. Lấy dữ liệu thật từ ViewModel
     val words by viewModel.wordsInSet.collectAsState()
     val allSets by viewModel.vocabularySets.collectAsState()
-
-    // Tìm thông tin của bộ từ vựng hiện tại để vẽ phần Header
     val currentSet = allSets.find { it.setId == setId }
 
     Scaffold(
@@ -202,7 +198,6 @@ fun VocabularySetDetailScreen(
                 ),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Hiển thị thẻ thông tin Bộ từ vựng ở trên cùng nếu tìm thấy dữ liệu
                 currentSet?.let {
                     item {
                         SetHeaderCard(set = it)
@@ -257,14 +252,10 @@ fun VocabularySetDetailScreen(
                         }
                     }
                 }
-
-                // Lọc từ vựng theo ô tìm kiếm
                 val filteredWords = words.filter {
                     it.word.contains(searchQuery, ignoreCase = true) ||
                             it.meaning.contains(searchQuery, ignoreCase = true)
                 }
-
-                // ... (Các code bên trên giữ nguyên)
                 if (filteredWords.isEmpty()) {
                     item {
                         EmptyStateView(
@@ -281,7 +272,6 @@ fun VocabularySetDetailScreen(
                                 viewModel.toggleFavorite(item)
                             },
                             onDeleteClick = {
-                                // Gọi hàm xóa từ vựng vừa viết ở Bước 1
                                 viewModel.deleteWord(item)
 
                                 coroutineScope.launch {
@@ -296,7 +286,6 @@ fun VocabularySetDetailScreen(
                         )
                     }
                 }
-                // ...
                 }
             }
         }
@@ -384,7 +373,7 @@ fun VocabularyItemCard(
     onDeleteClick: () -> Unit, // Thêm tham số sự kiện Xóa
     onEditClick: () -> Unit    // Thêm tham số sự kiện Sửa
 ) {
-    // 1. Thêm biến quản lý trạng thái mở/đóng Menu và Hộp thoại xác nhận xóa
+
     var expanded by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
 
@@ -413,7 +402,6 @@ fun VocabularyItemCard(
                     )
                 }
 
-                // 2. Wrap IconButton trong Box và thêm DropdownMenu
                 Box {
                     IconButton(onClick = { expanded = true }) {
                         Icon(
@@ -430,14 +418,14 @@ fun VocabularyItemCard(
                             text = { Text("Edit Word") },
                             onClick = {
                                 expanded = false
-                                onEditClick() // Gọi sự kiện sửa
+                                onEditClick()
                             }
                         )
                         DropdownMenuItem(
                             text = { Text("Delete Word") },
                             onClick = {
                                 expanded = false
-                                showDeleteDialog = true // Mở hộp thoại xác nhận xóa
+                                showDeleteDialog = true
                             }
                         )
                     }
@@ -472,7 +460,7 @@ fun VocabularyItemCard(
         }
     }
 
-    // 3. Hiển thị thông báo xác nhận xóa
+
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
@@ -482,7 +470,7 @@ fun VocabularyItemCard(
                 TextButton(
                     onClick = {
                         showDeleteDialog = false
-                        onDeleteClick() // Gọi logic xóa thực sự xuống Database
+                        onDeleteClick()
                     }
                 ) {
                     Text("Delete", color = MaterialTheme.colorScheme.error)

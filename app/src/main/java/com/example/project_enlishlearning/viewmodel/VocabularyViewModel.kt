@@ -21,7 +21,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-// Sử dụng AndroidViewModel(application) để lấy được Context mở Database
+
 class VocabularyViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = VocabularyRepository(
@@ -30,15 +30,12 @@ class VocabularyViewModel(application: Application) : AndroidViewModel(applicati
         exportFormatter = VocabularyExportFormatter()
     )
 
-    // Lấy userId hiện tại từ Firebase
     private val currentUserId: String
         get() = FirebaseManager.auth.currentUser?.uid ?: ""
 
-    // 2. Biến chứa danh sách BỘ TỪ VỰNG (giao diện sẽ "lắng nghe" biến này)
     private val _vocabularySets = MutableStateFlow<List<VocabularySetEntity>>(emptyList())
     val vocabularySets: StateFlow<List<VocabularySetEntity>> = _vocabularySets.asStateFlow()
 
-    // 3. Biến chứa danh sách TỪ VỰNG CHI TIẾT của 1 bộ
     private val _wordsInSet = MutableStateFlow<List<VocabularyWordEntity>>(emptyList())
     val wordsInSet: StateFlow<List<VocabularyWordEntity>> = _wordsInSet.asStateFlow()
 
@@ -60,31 +57,25 @@ class VocabularyViewModel(application: Application) : AndroidViewModel(applicati
     private var cachedPreview: ImportPreview? = null
 
     init {
-        // Vừa vào app là tự động gọi hàm lấy danh sách các Bộ từ vựng luôn
         loadAllSets()
     }
 
-    // ==========================================
-    // CÁC HÀM THAO TÁC VỚI BỘ TỪ VỰNG
-    // ==========================================
     private fun loadAllSets() {
-        if (currentUserId.isEmpty()) return // Bỏ qua nếu user chưa đăng nhập
-
+        if (currentUserId.isEmpty()) return
         viewModelScope.launch {
-            // Thay đổi để gọi hàm lấy danh sách theo userId
             repository.getAllSetsByUserId(currentUserId).collect { sets ->
                 _vocabularySets.value = sets
             }
         }
     }
 
-    // Hàm gọi khi bấm nút "Tạo bộ từ vựng mới"
+
     fun addVocabularySet(title: String, description: String) {
-        if (currentUserId.isEmpty()) return // Bỏ qua nếu user chưa đăng nhập
+        if (currentUserId.isEmpty()) return
 
         viewModelScope.launch {
             val newSet = VocabularySetEntity(
-                userId = currentUserId, // Truyền userId vào entity
+                userId = currentUserId,
                 title = title,
                 description = description
             )
@@ -93,11 +84,6 @@ class VocabularyViewModel(application: Application) : AndroidViewModel(applicati
     }
 
 
-    // ==========================================
-    // CÁC HÀM THAO TÁC VỚI TỪ VỰNG CHI TIẾT
-    // ==========================================
-
-    // Hàm gọi khi người dùng bấm vào xem 1 bộ cụ thể (truyền ID của bộ đó vào)
     fun loadWordsForSet(setId: Int) {
         viewModelScope.launch {
             repository.getWordsBySetId(setId).collect { words ->
@@ -106,7 +92,7 @@ class VocabularyViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
-    // Hàm gọi khi bấm nút "Thêm từ vựng"
+
     fun addWord(setId: Int, word: String, pronunciation: String, meaning: String, example: String) {
         viewModelScope.launch {
             val newWord = VocabularyWordEntity(
@@ -116,26 +102,20 @@ class VocabularyViewModel(application: Application) : AndroidViewModel(applicati
                 meaning = meaning,
                 example = example
             )
-            // 1. Thêm từ vựng vào Database
-            repository.insertWord(newWord)
 
-            // 2. Tăng số đếm totalWords của bộ từ vựng này lên 1
+            repository.insertWord(newWord)
             repository.incrementTotalWords(setId)
         }
     }
 
-    // Hàm gọi khi xoá từ vựng
+
     fun deleteWord(word: VocabularyWordEntity) {
         viewModelScope.launch {
-            // 1. Xóa từ vựng khỏi Database
             repository.deleteWord(word)
-
-            // 2. Giảm số đếm totalWords đi 1 dựa vào setId của từ vừa xóa
             repository.decrementTotalWords(word.setId)
         }
     }
 
-    // Hàm bấm nút thả tim (Yêu thích)
     fun toggleFavorite(word: VocabularyWordEntity) {
         viewModelScope.launch {
             val updatedWord = word.copy(isFavorite = !word.isFavorite)
@@ -144,12 +124,12 @@ class VocabularyViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     fun updateVocabularySet(setId: Int, title: String, description: String, totalWords: Int, progress: Int) {
-        if (currentUserId.isEmpty()) return // Bỏ qua nếu user chưa đăng nhập
+        if (currentUserId.isEmpty()) return
 
         viewModelScope.launch {
             val updatedSet = VocabularySetEntity(
                 setId = setId,
-                userId = currentUserId, // Chắc chắn truyền lại userId
+                userId = currentUserId,
                 title = title,
                 description = description,
                 totalWords = totalWords,
@@ -176,10 +156,9 @@ class VocabularyViewModel(application: Application) : AndroidViewModel(applicati
         isFavorite: Boolean
     ) {
         viewModelScope.launch {
-            // Lấy lại word cũ đang edit
+
             val current = _currentEditWord.value
             if (current != null && current.wordId == wordId) {
-                // Dùng copy() để giữ lại các trường quan trọng như userId
                 val updatedWord = current.copy(
                     word = word,
                     pronunciation = pronunciation,
