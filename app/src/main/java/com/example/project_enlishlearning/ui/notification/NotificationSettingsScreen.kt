@@ -52,8 +52,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.platform.LocalContext
 import android.app.TimePickerDialog
 import androidx.compose.material3.TextButton
+import com.example.project_enlishlearning.utils.notification.NotificationHelper
 import com.example.project_enlishlearning.viewmodel.NotificationViewModel
 import java.util.Locale
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import com.example.project_enlishlearning.utils.FirebaseManager
+import com.example.project_enlishlearning.data.local.database.AppDatabase
 
 @Composable
 fun NotificationSettingsScreen(
@@ -64,6 +70,7 @@ fun NotificationSettingsScreen(
 ) {
 
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     val dailyReminder by viewModel.dailyReminderEnabled.collectAsState()
     val reviewReminder by viewModel.reviewReminderEnabled.collectAsState()
     val pushNotification by viewModel.pushNotificationEnabled.collectAsState()
@@ -158,7 +165,25 @@ fun NotificationSettingsScreen(
 
 
 
-                NotificationSection(title = "Review Reminder") {
+                NotificationSection(
+                    title = "Review Reminder",
+                    action = {
+                        TextButton(
+                            onClick = {
+                                requestPermissionIfNecessary {
+                                    coroutineScope.launch(Dispatchers.IO) {
+                                        val userId = FirebaseManager.auth.currentUser?.uid ?: "local_user"
+                                        val db = AppDatabase.getDatabase(context)
+                                        val dueCount = db.learningProgressDao().getReviewDueCount(userId)
+                                        NotificationHelper.showReviewReminder(context, dueCount)
+                                    }
+                                }
+                            }
+                        ) {
+                            Text("Quick Test")
+                        }
+                    }
+                ) {
                     NotificationToggleItem(
                         icon = Icons.Default.Schedule,
                         title = "Review due reminder",
@@ -273,6 +298,7 @@ fun NotificationTimeCard(
 @Composable
 fun NotificationSection(
     title: String,
+    action: @Composable (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit
 ) {
     AppCard(modifier = Modifier.fillMaxWidth()) {
@@ -280,11 +306,18 @@ fun NotificationSection(
             modifier = Modifier.padding(AppDimens.CardPadding),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+                action?.invoke()
+            }
             content()
         }
     }
