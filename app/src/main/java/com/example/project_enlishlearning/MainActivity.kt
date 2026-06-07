@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.project_enlishlearning.data.local.database.AppDatabase
 import com.example.project_enlishlearning.navigation.AppNavGraph
 import com.example.project_enlishlearning.ui.theme.ProjectEnlishLearningTheme
@@ -46,8 +47,11 @@ class MainActivity : ComponentActivity() {
                 val authViewModel: AuthViewModel = viewModel()
 
                 val destination by destinationState
-                LaunchedEffect(destination) {
-                    if (destination == "due_review") {
+                val currentBackStackEntry by navController.currentBackStackEntryAsState()
+                val currentRoute = currentBackStackEntry?.destination?.route
+
+                LaunchedEffect(destination, currentRoute) {
+                    if (destination == "due_review" && currentRoute != null && currentRoute != Screen.Splash.route) {
                         navController.navigate(
                             Screen.ReviewVocabulary.createRoute(
                                 Screen.ReviewVocabulary.GLOBAL_DUE_REVIEW_SET_ID
@@ -60,7 +64,29 @@ class MainActivity : ComponentActivity() {
                 AppNavGraph(
                     navController = navController,
                     database = database,
-                    authViewModel = authViewModel
+                    authViewModel = authViewModel,
+                    onSessionValid = {
+                        val currentDest = destinationState.value
+                        if (currentDest == "due_review") {
+                            destinationState.value = null
+                            navController.navigate(Screen.Dashboard.route) {
+                                popUpTo(Screen.Splash.route) {
+                                    inclusive = true
+                                }
+                            }
+                            navController.navigate(
+                                Screen.ReviewVocabulary.createRoute(
+                                    Screen.ReviewVocabulary.GLOBAL_DUE_REVIEW_SET_ID
+                                )
+                            )
+                        } else {
+                            navController.navigate(Screen.Dashboard.route) {
+                                popUpTo(Screen.Splash.route) {
+                                    inclusive = true
+                                }
+                            }
+                        }
+                    }
                 )
             }
         }

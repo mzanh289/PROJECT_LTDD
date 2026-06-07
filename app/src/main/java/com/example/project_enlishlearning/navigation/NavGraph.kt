@@ -52,7 +52,14 @@ import com.example.project_enlishlearning.viewmodel.ProfileViewModelFactory
 fun AppNavGraph(
     navController: NavHostController,
     database: AppDatabase,
-    authViewModel: AuthViewModel
+    authViewModel: AuthViewModel,
+    onSessionValid: () -> Unit = {
+        navController.navigate(Screen.Dashboard.route) {
+            popUpTo(Screen.Splash.route) {
+                inclusive = true
+            }
+        }
+    }
 ) {
     val userProfileRepository = UserProfileRepository(
         userProfileDao = database.userProfileDao()
@@ -72,7 +79,8 @@ fun AppNavGraph(
         composable(Screen.Splash.route) {
             SplashScreen(
                 navController = navController,
-                authViewModel = authViewModel
+                authViewModel = authViewModel,
+                onSessionValid = onSessionValid
             )
         }
 

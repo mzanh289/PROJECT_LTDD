@@ -44,7 +44,14 @@ import com.example.project_enlishlearning.R
 @Composable
 fun SplashScreen(
     navController: NavController,
-    authViewModel: AuthViewModel = viewModel()
+    authViewModel: AuthViewModel = viewModel(),
+    onSessionValid: () -> Unit = {
+        navController.navigate(Screen.Dashboard.route) {
+            popUpTo(Screen.Splash.route) {
+                inclusive = true
+            }
+        }
+    }
 ) {
     var isCheckingSession by remember { mutableStateOf(true) }
 
@@ -54,11 +61,7 @@ fun SplashScreen(
             authViewModel.checkSession(
                 onSessionValid = {
                     isCheckingSession = false
-                    navController.navigate(Screen.Dashboard.route) {
-                        popUpTo(Screen.Splash.route) {
-                            inclusive = true
-                        }
-                    }
+                    onSessionValid()
                 },
                 onSessionInvalid = {
                     isCheckingSession = false
