@@ -165,6 +165,10 @@ fun FlashcardLearningScreen(
         label = ""
     )
 
+    var backWord by remember { mutableStateOf(currentWord) }
+    if (rotation <= 90f) {
+        backWord = currentWord
+    }
 
     val selectedSrs = remember { mutableStateOf<String?>(null) }
     val density = LocalDensity.current
@@ -212,10 +216,12 @@ fun FlashcardLearningScreen(
                             if (rotation <= 90f) {
                                 FlashcardFront(word = currentWord)
                             } else {
-                                FlashcardBack(
-                                    word = currentWord,
-                                    modifier = Modifier.graphicsLayer { rotationY = 180f }
-                                )
+                                backWord?.let {
+                                    FlashcardBack(
+                                        word = it,
+                                        modifier = Modifier.graphicsLayer { rotationY = 180f }
+                                    )
+                                }
                             }
                         }
                     }
