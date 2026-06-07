@@ -22,7 +22,7 @@ import com.example.project_enlishlearning.viewmodel.VocabularyViewModel
 @Composable
 fun EditVocabularyScreen(
     navController: NavController,
-    wordId: Any,
+    wordId: Long,
     viewModel: VocabularyViewModel = viewModel(
         factory = ViewModelProvider.AndroidViewModelFactory.getInstance(
             LocalContext.current.applicationContext as Application
@@ -35,7 +35,7 @@ fun EditVocabularyScreen(
 
     // 2. Tự động gọi ViewModel lấy dữ liệu khi mở màn hình
     LaunchedEffect(wordId) {
-        viewModel.loadWordById(wordId as Int)
+        viewModel.loadWordById(wordId)
     }
 
     var wordText by remember { mutableStateOf("") }

@@ -56,7 +56,7 @@ class VocabularyRepository(
         return vocabularyDao.deleteWord(word)
     }
 
-    suspend fun getWordById(wordId: Int): VocabularyWordEntity? {
+    suspend fun getWordById(wordId: Long): VocabularyWordEntity? {
         val word = vocabularyDao.getWordById(wordId)
         if (word != null && word.userId != currentUserId) {
             return null

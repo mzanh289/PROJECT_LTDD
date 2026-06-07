@@ -176,21 +176,24 @@ class VocabularyViewModel(application: Application) : AndroidViewModel(applicati
         isFavorite: Boolean
     ) {
         viewModelScope.launch {
-            val updatedWord = VocabularyWordEntity(
-                wordId = wordId,
-                setId = setId,
-                word = word,
-                pronunciation = pronunciation,
-                meaning = meaning,
-                example = example,
-                status = status,
-                isFavorite = isFavorite
-            )
-            repository.updateWord(updatedWord)
+            // Lấy lại word cũ đang edit
+            val current = _currentEditWord.value
+            if (current != null && current.wordId == wordId) {
+                // Dùng copy() để giữ lại các trường quan trọng như userId
+                val updatedWord = current.copy(
+                    word = word,
+                    pronunciation = pronunciation,
+                    meaning = meaning,
+                    example = example,
+                    status = status,
+                    isFavorite = isFavorite
+                )
+                repository.updateWord(updatedWord)
+            }
         }
     }
 
-    fun loadWordById(wordId: Int) {
+    fun loadWordById(wordId: Long) {
         viewModelScope.launch {
             _currentEditWord.value = repository.getWordById(wordId)
         }

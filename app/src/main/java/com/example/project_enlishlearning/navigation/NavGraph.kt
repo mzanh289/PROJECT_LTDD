@@ -379,8 +379,7 @@ fun AppNavGraph(
             )
         ) { backStackEntry ->
 
-            val wordId =
-                backStackEntry.arguments?.getInt("wordId") ?: 0L
+            val wordId = backStackEntry.arguments?.getLong("wordId") ?: 0L
 
             EditVocabularyScreen(
                 navController = navController,
