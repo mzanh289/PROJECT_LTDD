@@ -28,6 +28,38 @@ class VocabularyRepository(
         return vocabularyDao.getWordsBySetIdAndUserId(setId, currentUserId)
     }
 
+    suspend fun seedDefaultVocabulary(userId: String, inputStream: InputStream) {
+        val defaultSet = VocabularySetEntity(
+            userId = userId,
+            title = "Từ vựng cơ bản",
+            description = "Bộ từ vựng mặc định dành cho người mới bắt đầu.",
+            totalWords = 0,
+            progress = 0
+        )
+        val setId = vocabularyDao.insertSet(defaultSet).toInt()
+
+        val preview = importParser.parseCsv(inputStream, "default_vocabulary.csv")
+        val newWords = mutableListOf<VocabularyWordEntity>()
+
+        preview.validItems.forEach { row ->
+            newWords.add(
+                VocabularyWordEntity(
+                    setId = setId,
+                    userId = userId,
+                    word = row.word,
+                    meaning = row.meaning,
+                    pronunciation = row.pronunciation,
+                    example = row.example
+                )
+            )
+        }
+
+        if (newWords.isNotEmpty()) {
+            vocabularyDao.insertWords(newWords)
+            vocabularyDao.incrementTotalWordsBy(setId, newWords.size)
+        }
+    }
+
     suspend fun insertSet(set: VocabularySetEntity): Long {
         val uid = FirebaseManager.auth.currentUser?.uid ?: set.userId
         return vocabularyDao.insertSet(set.copy(userId = uid))

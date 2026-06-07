@@ -9,6 +9,9 @@ import androidx.lifecycle.viewModelScope
 import com.example.project_enlishlearning.data.local.entity.UserProfileEntity
 import com.example.project_enlishlearning.data.repository.AuthRepository
 import com.example.project_enlishlearning.data.repository.UserProfileRepository
+import com.example.project_enlishlearning.data.repository.VocabularyRepository
+import com.example.project_enlishlearning.data.importexport.VocabularyImportParser
+import com.example.project_enlishlearning.data.importexport.VocabularyExportFormatter
 import com.example.project_enlishlearning.utils.DatabaseProvider
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
@@ -25,6 +28,13 @@ class AuthViewModel : ViewModel() {
     private val repository = AuthRepository()
     private val userProfileRepository by lazy {
         UserProfileRepository(DatabaseProvider.getDatabase().userProfileDao())
+    }
+    private val vocabularyRepository by lazy {
+        VocabularyRepository(
+            vocabularyDao = DatabaseProvider.getDatabase().vocabularyDao(),
+            importParser = VocabularyImportParser(),
+            exportFormatter = VocabularyExportFormatter()
+        )
     }
 
     private suspend fun syncUserProfile(user: FirebaseUser, isRegistration: Boolean, displayName: String? = null) {
@@ -52,6 +62,16 @@ class AuthViewModel : ViewModel() {
                 )
                 userProfileRepository.saveProfile(newProfile)
                 Log.d("AUTH", "Profile created: UID = $uid")
+
+                // Seed default vocabulary for the new user profile
+                try {
+                    val context = DatabaseProvider.getContext()
+                    val inputStream = context.assets.open("default_vocabulary.csv")
+                    vocabularyRepository.seedDefaultVocabulary(uid, inputStream)
+                    Log.d("AUTH", "Default vocabulary seeded successfully for user: $uid")
+                } catch (seedEx: Exception) {
+                    Log.e("AUTH", "Failed to seed default vocabulary: ${seedEx.message}", seedEx)
+                }
             } else {
                 Log.d("AUTH", "Existing profile found: UID = $uid")
             }
