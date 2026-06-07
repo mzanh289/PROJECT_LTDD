@@ -2,9 +2,10 @@ package com.example.project_enlishlearning.ui.dashboard
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import java.text.SimpleDateFormat
+import java.util.Locale
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -61,22 +62,14 @@ fun DashboardScreen(
 ) {
     val totalVocabularySets by viewModel.totalVocabularySets.collectAsState()
     val totalVocabularyWords by viewModel.totalVocabularyWords.collectAsState()
-    val totalLearningWords by viewModel.totalLearningWords.collectAsState()
-    val newWords by viewModel.newWords.collectAsState()
+
     val learningWords by viewModel.learningWords.collectAsState()
-    val reviewingWords by viewModel.reviewingWords.collectAsState()
     val masteredWords by viewModel.masteredWords.collectAsState()
+
     val reviewDueToday by viewModel.reviewDueToday.collectAsState()
     val weeklyReviewCounts by viewModel.weeklyReviewCounts.collectAsState()
     val retentionRate by viewModel.retentionRate.collectAsState()
     val learningStreak by viewModel.learningStreak.collectAsState()
-
-    val totalProgressWords = newWords + learningWords + reviewingWords + masteredWords
-    val masteredProgress = if (totalProgressWords > 0) {
-        masteredWords.toFloat() / totalProgressWords.toFloat()
-    } else {
-        0f
-    }
 
     Scaffold(
         topBar = {
@@ -171,7 +164,7 @@ fun DashboardScreen(
                     ) {
                         ModernStatCard(
                             title = "Learning",
-                            value = totalLearningWords.toString(),
+                            value = learningWords.toString(),
                             icon = Icons.Default.School,
                             modifier = Modifier.weight(1f)
                         )
@@ -302,7 +295,6 @@ private fun ModernStatCard(
         }
     }
 }
-
 
 @Composable
 private fun LearningStreakCard(
@@ -438,16 +430,16 @@ private fun DailyActivityChartCard(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(180.dp)
+                        .height(200.dp)
                 ) {
-
-                    // baseline (đường nền cho đẹp hơn)
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(1.dp)
                             .align(Alignment.BottomCenter)
-                            .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                            .background(
+                                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                            )
                     )
 
                     Row(
@@ -459,15 +451,22 @@ private fun DailyActivityChartCard(
                         dailyCounts.forEach { day ->
 
                             val barHeightRatio =
-                                (day.reviewCount.toFloat() / maxCount.toFloat()).coerceIn(0f, 1f)
+                                (day.reviewCount.toFloat() / maxCount.toFloat())
+                                    .coerceIn(0f, 1f)
 
                             Column(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.Bottom,
                                 modifier = Modifier.weight(1f)
                             ) {
+                                Text(
+                                    text = day.reviewCount.toString(),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
 
-                                // BAR (đẹp hơn)
+                                Spacer(modifier = Modifier.height(6.dp))
+
                                 Box(
                                     modifier = Modifier
                                         .width(14.dp)
@@ -485,9 +484,8 @@ private fun DailyActivityChartCard(
 
                                 Spacer(modifier = Modifier.height(8.dp))
 
-                                // DAY LABEL
                                 Text(
-                                    text = day.day.takeLast(2),
+                                    text = formatChartDate(day.day),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -495,43 +493,23 @@ private fun DailyActivityChartCard(
                         }
                     }
                 }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    dailyCounts.forEach { day ->
-                        Text(
-                            text = day.reviewCount.toString(),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
             }
         }
     }
 }
+private fun formatChartDate(dateText: String): String {
+    return try {
+        val inputFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        val outputFormat = SimpleDateFormat("dd/MM", Locale.getDefault())
 
-@Composable
-private fun ProgressText(
-    title: String,
-    value: Int
-) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = value.toString(),
-            style = MaterialTheme.typography.titleMedium
-        )
+        val date = inputFormat.parse(dateText)
 
-        Text(
-            text = title,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        if (date != null) {
+            outputFormat.format(date)
+        } else {
+            dateText
+        }
+    } catch (e: Exception) {
+        dateText
     }
 }
